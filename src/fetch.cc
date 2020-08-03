@@ -62,22 +62,35 @@ std::string ExoFetch::get_arch()
     return "x86";
 #elif defined(__hppa__) || defined(__hppa)
     return "RISC-V";
-#elif defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__)|| defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
+#elif defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__)|| defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__) || defined(__arm__)
     return "ARMv7";
+#elif defined(__arm__)
+    return "ARM";   // Generic ARM
 #else
-#warn "Consider adding your architecture here"
+#warning "Consider adding your architecture here"
     return "Unknown";
 #endif
 }
 
 std::string ExoFetch::get_cpu_model()
 {
-    std::string res = shell_cmd("cat /proc/cpuinfo | grep \"model name\" -m 1");
-    string_replace(res, "model name	:", "");
-    ltrim(res);
-    return res;
+    std::ifstream cpuinfo ("/proc/cpuinfo");
+    std::string line;
+    if (cpuinfo.is_open()) {
+        while (std::getline(cpuinfo, line)) {
+            size_t pos = line.find("model name");
+            if (pos != std::string::npos) {
+                 line.erase(pos, 10);
+                 line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int ch) {
+                     return !std::isspace(ch) && ch != ':';
+                 }));
+                 return line;
+            }
+        }
+        cpuinfo.close();
+    }
+    return "Unknown";
 }
-
 
 std::string ExoFetch::get_username()
 {
