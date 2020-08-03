@@ -1,7 +1,9 @@
 #include "h/fetch.hh"
 #include <fstream>   // ifstream
-#include <memory>
-#include <algorithm>
+#include <memory>    // FILE, unique_tr
+#include <algorithm> // find_if, transform
+#include <unistd.h>  // gethostname
+#include <pwd.h>     // struct passwd, getpwuid_r
 
 using std::ifstream;
 using std::string;
@@ -55,6 +57,41 @@ std::string ExoFetch::get_arch()
 #endif
 }
 
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+
+std::string ExoFetch::get_cpu_model()
+{
+    std::string res = shell_cmd("cat /proc/cpuinfo | grep \"model name\" -m 1");
+    string_replace(res, "model name	:", "");
+    ltrim(res);
+    return res;
+}
+
+
+std::string ExoFetch::get_username()
+{
+    // Gets the effective ID of the user
+    uid_t uid = geteuid();
+    struct passwd pwent;
+    struct passwd *pwent_ptr;
+    char buffer[1024];
+
+    // Looks for the UID on the password databank and saves the result on pwent
+    getpwuid_r(uid, &pwent, buffer, sizeof buffer, &pwent_ptr);
+    return pwent.pw_name;
+}
+
+std::string ExoFetch::get_hostname()
+{
+    char buffer[64];
+    gethostname(buffer, 64);
+    return buffer;
+}
 
 // TODO: non-dpkg systems
 std::string ExoFetch::get_packages()

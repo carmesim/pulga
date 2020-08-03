@@ -17,6 +17,9 @@ namespace ExoFetch {
     std::string get_distro();
     std::string get_packages();
     std::string get_shell();
+    std::string get_cpu_model();
+    std::string get_username();
+    std::string get_hostname();
 }
 
 #endif
