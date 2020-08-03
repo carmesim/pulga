@@ -8,6 +8,18 @@
 using std::ifstream;
 using std::string;
 
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+static inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
 static void string_replace( string &s, const string &search, const string &replace ) {
     for( size_t pos = 0; ; pos += replace.length() ) {
         pos = s.find(search, pos);
@@ -29,6 +41,7 @@ static std::string shell_cmd(const char * cmd) {
     {
         result += buffer;
     }
+    rtrim(result);
     return result;
 }
 
@@ -56,13 +69,6 @@ std::string ExoFetch::get_arch()
     return "Unknown";
 #endif
 }
-
-static inline void ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-        return !std::isspace(ch);
-    }));
-}
-
 
 std::string ExoFetch::get_cpu_model()
 {

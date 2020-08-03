@@ -1,48 +1,38 @@
 #include <iostream>
 #include "../h/fetch.hh"
 
-/* this will give the correct ammount of space
- based on the word length */
-std::string auto_spacer(int word_length){
-    /* system arch is the biggest "word", that's 11 chars and I want at least 
-     one space after each description */
-    int word_max = 12; 
-    std::string spaces="";
+//std::string auto_spacer(int word_length){
+//    /* system arch is the biggest "word", that's 11 chars and I want at least
+//     one space after each description */
+//    int word_max = 12;
+//    std::string spaces = std::string(word_max - word_length, ' ') + "> ";
+//    return spaces;
+//}
 
-    // the for loop generates the spaces for each word length
-    for(int s=0; s<(word_max - word_length); s++){
-        spaces+=" ";
-    }
-    // at the end, just add the separator
-    spaces += "> ";
-    return spaces;
-}
+#define COLOR1 = "\033[0;35m" // titles
+#define _COLOR2 = "\033[0;31m" // ascii logo
+#define _COLOR3 = "\033[1;32m" // info
+#define _RESET  = "\033[0m"    // reset coloring
 
-void print_info(){
+static inline void print_info(){
     // the variables are only because I need to access their lengths
-    std::string username = "username";
-    std::string hostname = "hostname";
-    std::string os       = "os";
-    std::string kernel   = "kernel";
-    std::string sysarch  = "system arch";
-    std::string uptime   = "uptime";
-    std::string packages = "packages";
-    std::string shell    = "shell";
-    std::string cpu      = "cpu";
-
-    std::cout << username << auto_spacer(username.length()) << ExoFetch::get_username() << '\n';
-    std::cout << hostname << auto_spacer(hostname.length()) << ExoFetch::get_hostname() << '\n';
-    std::cout << os       << auto_spacer(os.length())       << ExoFetch::get_distro() << '\n';
-    std::cout << kernel   << auto_spacer(kernel.length())   << ExoFetch::get_kernel();
-    std::cout << sysarch  << auto_spacer(sysarch.length())  << ExoFetch::get_arch() << '\n';
-    std::cout << uptime   << auto_spacer(uptime.length())   << ExoFetch::get_uptime() << '\n';
-    std::cout << packages << auto_spacer(packages.length()) << ExoFetch::get_packages();
-    std::cout << shell    << auto_spacer(shell.length())    << ExoFetch::get_shell();
-    std::cout << cpu      << auto_spacer(cpu.length())      << ExoFetch::get_cpu_model();
+    const char * color1 = "\033[0;35m";
+    const char * color3 = "\033[1;32m";
+    unsigned char max_width = 12;
+    printf("%s%-*s> %s%s\n", color1, max_width, "username",   color3, ExoFetch::get_username().c_str());
+    printf("%s%-*s> %s%s\n", color1, max_width, "hostname",   color3, ExoFetch::get_hostname().c_str());
+    printf("%s%-*s> %s%s\n", color1, max_width, "os",         color3, ExoFetch::get_distro().c_str());
+    printf("%s%-*s> %s%s\n", color1, max_width, "kernel",     color3, ExoFetch::get_kernel().c_str());
+    printf("%s%-*s> %s%s\n", color1, max_width,"system arch", color3, ExoFetch::get_arch().c_str());
+    printf("%s%-*s> %s%s\n", color1, max_width, "uptime",     color3, ExoFetch::get_uptime().c_str());
+    printf("%s%-*s> %s%s\n", color1, max_width,"packages",    color3, ExoFetch::get_packages().c_str());
+    printf("%s%-*s> %s%s\n", color1, max_width, "shell",      color3, ExoFetch::get_shell().c_str());
+    printf("%s%-*s> %s%s\n", color1, max_width, "cpu",        color3, ExoFetch::get_cpu_model().c_str());
 }
 
 int main()
 {
     print_info();
+    printf("%s", "\033[0m");
     return 0;
 }
