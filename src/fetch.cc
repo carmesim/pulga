@@ -8,25 +8,16 @@
 using std::ifstream;
 using std::string;
 
-static inline void ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-        return !std::isspace(ch);
-    }));
-}
+//static inline void ltrim(std::string &s) {
+//    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+//        return !std::isspace(ch);
+//    }));
+//}
 
 static inline void rtrim(std::string &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
         return !std::isspace(ch);
     }).base(), s.end());
-}
-
-static void string_replace( string &s, const string &search, const string &replace ) {
-    for( size_t pos = 0; ; pos += replace.length() ) {
-        pos = s.find(search, pos);
-        if(pos == string::npos) break;
-        s.erase(pos, search.length());
-        s.insert(pos, replace);
-    }
 }
 
 static std::string shell_cmd(const char * cmd) {
@@ -118,18 +109,66 @@ std::string ExoFetch::get_packages()
     return shell_cmd("dpkg -l | grep -c ^i");
 }
 
+//std::string ExoFetch::get_cpu_model()
+//{
+//    std::ifstream cpuinfo ("/proc/cpuinfo");
+//    std::string line;
+//    if (cpuinfo.is_open()) {
+//        while (std::getline(cpuinfo, line)) {
+//            size_t pos = line.find("model name");
+//            if (pos != std::string::npos) {
+//                 line.erase(pos, 10);
+//                 line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int ch) {
+//                     return !std::isspace(ch) && ch != ':';
+//                 }));
+//                 return line;
+//            }
+//        }
+//        cpuinfo.close();
+//    }
+//    return "Unknown";
+//}
+
+// I know this is horrible but I felt like microoptimizing
 std::string ExoFetch::get_distro()
 {
-    std::string res = shell_cmd("cat /etc/os-release | grep PRETTY_NAME=");
-    //res = std::regex_replace(res, std::regex("PRETTY_NAME="), "");
-    //res = std::regex_replace(res, std::regex("\""), "");
-    string_replace(res, "PRETTY_NAME=", "");
-    string_replace(res, "\"", "");
-    string_replace(res, "\n", "");
-
-    std::transform(res.begin(), res.end(), res.begin(), [](unsigned char c){ return std::tolower(c); });
-    return res;
+    std::ifstream os_release("/etc/os-release");
+    std::string line;
+    if (os_release.is_open()) {
+        while(std::getline(os_release, line)) {
+            size_t pos = line.find("PRETTY_NAME=");
+            if (pos != std::string::npos)
+            {
+                line.erase(pos, 12);
+                std::string res;
+                res.reserve(line.length());
+                for(size_t np = 0; np < line.length(); np++)
+                {
+                    if(line[np] != '"' && line[np] != '\n')
+                    {
+                        if ((line[np] >= 'A') && (line[np] <= 'Z'))
+                        {
+                            res += line[np] |= ' ';
+                        } else {
+                            res += line[np];
+                        }
+                    }
+                }
+                return res;
+            }
+        }
+    }
+    return "Unknown";
 }
+
+//    std::string res = shell_cmd("cat /etc/os-release | grep PRETTY_NAME="), ;
+//    res = std::regex_replace(res, std::regex("PRETTY_NAME="), "");
+//    res = std::regex_replace(res, std::regex("\""), "");
+//    //string_replace(res, "PRETTY_NAME=", "");
+//    //string_replace(res, "\"", "");
+//    //string_replace(res, "\n", "");
+//    res = std::regex_replace(res, std::regex("\n"), "");
+
 
 std::string ExoFetch::get_shell()
 {
