@@ -1,37 +1,37 @@
-
-use {std::env, dirs, whoami};
-use std::collections::HashMap;
-use std::io::{self, Read};
-
-use std::fs::File;
+use std::{env, fs::File, collections::HashMap, io::{self, Read}};
+use std::{path::PathBuf, mem, ptr, str};
+use std::ffi::{CStr, OsString};
+use libc::{getuid, getpwuid_r, passwd};
+use whoami;
 
 /// Error types
 #[derive(Debug)]
-pub enum Error {
+pub enum Error 
+{
     IO(io::Error),
     Unknown,
 }
 
-impl From<io::Error> for Error {
-    fn from(e: io::Error) -> Error {
+impl From<io::Error> for Error 
+{
+    fn from(e: io::Error) -> Error 
+    {
         Error::IO(e)
     }
 }
 
-
-
 #[derive(Debug)]
-pub struct UserData {
-    pub username:   String,       // User's username
-    pub hostname:   String,       // User's hostname
-    pub devicename: String,       // User's device name
-    pub cwd:        String,       // User's current working directory. TODO: unneeded?
-    pub hmd:        String,       // User's home directory
-    pub desk_env:   String,       // User's desktop environment
-    pub distro:     String,       // User's distro
-    pub platform:   String,       // User's platform 
-    pub total_memory: u64,
-    pub used_memory: u64,   
+pub struct UserData 
+{
+    pub username:   String,     // User's username
+    pub hostname:   String,     // User's hostname
+    pub devicename: String,     // User's device name
+    pub cwd:        String,     // User's current working directory. TODO: unneeded?
+    pub hmd:        String,     // User's home directory
+    pub desk_env:   String,     // User's desktop environment
+    pub distro:     String,     // User's distro
+    pub platform:   String,     // User's platform 
+    pub total_memory: u64,      //
 }
 
 #[repr(C)]
@@ -48,6 +48,25 @@ pub struct MemInfo {
     /// Total swap memory.
     pub swap_total: u64,
     pub swap_free:  u64,
+}
+
+//pub fn get_home_dir() -> Result<String, Error>
+pub fn home_dir() -> Option<PathBuf> 
+{
+    return std::env::var_os("HOME").or_else(|| unsafe {
+        let mut buf = Vec::with_capacity(2048);
+        let mut passwd: passwd = mem::zeroed();
+        let mut result = ptr::null_mut();
+        match getpwuid_r(getuid(), &mut passwd, buf.as_mut_ptr(),
+                                buf.capacity(), &mut result) {
+            0 if !result.is_null() => {
+                let ptr = passwd.pw_dir as *const _;
+                let bytes = CStr::from_ptr(ptr).to_bytes().to_vec();
+                Some(OsString::from(str::from_utf8(&bytes).unwrap().to_string()))
+            },
+            _ => None,
+        }
+    }).map(PathBuf::from);
 }
 
 // This function was adapted from sys-info by Siyu Wang (MIT-licensed)
@@ -100,7 +119,8 @@ pub fn get_user_data() -> UserData
     drop(cwd);
 
     // Home directory
-    let hmd = dirs::home_dir().unwrap();
+    // let hmd = dirs::home_dir().unwrap();
+    let hmd = home_dir().unwrap();
     let hmd_str: String = hmd.as_os_str().to_str().unwrap().to_string();
     drop(hmd);
     
@@ -117,6 +137,5 @@ pub fn get_user_data() -> UserData
         distro:     whoami::distro(),
         platform:   whoami::platform().to_string(),
         total_memory: mem_info.total,
-        used_memory:  mem_info.cached, 
     };
 }
