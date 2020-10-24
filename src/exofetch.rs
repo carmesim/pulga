@@ -27,8 +27,8 @@ pub struct UserData
     pub username:   String,     // User's username
     pub hostname:   String,     // User's hostname
     pub devicename: String,     // User's device name
-    pub cwd:        PathBuf,    // User's current working directory. TODO: unneeded?
-    pub hmd:        PathBuf,    // User's home directory
+    pub cwd:        String,     // User's current working directory. TODO: unneeded?
+    pub hmd:        String,     // User's home directory
     pub desk_env:   String,     // User's desktop environment
     pub distro:     String,     // User's distro
     pub platform:   String,     // User's platform 
@@ -121,7 +121,6 @@ pub fn mem_info() -> Result<MemInfo, Error>
 
 /// pretty_bytes gets a value in bytes and returns a human-readable form of it
 fn pretty_bytes(num: f64) -> String {
-    println!{"bytes: {}", num as u64};
     let negative = if num > 0_f64 { "" } else { "-" };
     let num = num.abs();
     const UNITS: &[&str] = &["B", "kB", "MB", "GB", "TB"];
@@ -141,25 +140,23 @@ pub fn get_user_data() -> UserData
 {
     // Current working directory
     let cwd = env::current_dir().unwrap();
-    // let cwd_str: String = cwd.as_os_str().to_str().unwrap().to_string();
-    // drop(cwd);
+    let cwd_str: String = cwd.as_os_str().to_str().unwrap().to_string();
+    drop(cwd);
 
     // Home directory
     let hmd = home_dir().unwrap();
-    // let hmd_str: String = hmd.as_os_str().to_str().unwrap().to_string();
-    // drop(hmd);
+    let hmd_str: String = hmd.as_os_str().to_str().unwrap().to_string();
+    drop(hmd);
     
     let mem_info = mem_info().unwrap();
-
-    println!("{:?}", mem_info);
 
     return UserData
     {
         username:   whoami::username(),
         hostname:   whoami::hostname(),
         devicename: whoami::devicename(),
-        cwd:        cwd,
-        hmd:        hmd,
+        cwd:        cwd_str,
+        hmd:        hmd_str,
         desk_env:   whoami::desktop_env().to_string(),
         distro:     whoami::distro(),
         platform:   whoami::platform().to_string(),
