@@ -121,6 +121,7 @@ pub fn mem_info() -> Result<MemInfo, Error>
 
 /// pretty_bytes gets a value in bytes and returns a human-readable form of it
 fn pretty_bytes(num: f64) -> String {
+    println!{"bytes: {}", num as u64};
     let negative = if num > 0_f64 { "" } else { "-" };
     let num = num.abs();
     const UNITS: &[&str] = &["B", "kB", "MB", "GB", "TB"];
@@ -128,9 +129,9 @@ fn pretty_bytes(num: f64) -> String {
     {
         return format!("{}{} {}", negative, num, "B");
     }
-    let v1 = (num.ln() / 1000_f64.ln()).floor() as i32;
+    let v1 = (num.ln() / 1024_f64.ln()).floor() as i32;
     let exponent = cmp::min(v1, 4_i32);
-    let pretty_bytes = format!("{:.2}", num / 1000_f64.powi(exponent)).parse::<f64>().unwrap();
+    let pretty_bytes = format!("{:.2}", num / 1024_f64.powi(exponent));
     let unit:&str = UNITS[exponent as usize];
     format!("{}{} {}", negative, pretty_bytes, unit)
   }
