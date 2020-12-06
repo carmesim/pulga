@@ -225,9 +225,8 @@ pub fn devicename() -> String {
         for i in distro.split('\n') {
             let mut j = i.split('=');
 
-            match j.next().unwrap() {
-                "PRETTY_HOSTNAME" => return j.next().unwrap().trim_matches('"').to_string(),
-                _ => {},
+            if let "PRETTY_HOSTNAME" = j.next().unwrap() {
+                return j.next().unwrap().trim_matches('"').to_string();
             }
         }
     }
