@@ -1,3 +1,5 @@
+use crate::error::Error;
+
 use libc::{getpwuid_r, getuid, passwd};
 
 use std::{
@@ -5,23 +7,10 @@ use std::{
     collections::HashMap,
     env,
     ffi::{CStr, OsString},
-    fs, io, mem,
+    fs, mem,
     path::PathBuf,
     ptr, str,
 };
-
-/// Error types
-#[derive(Debug)]
-pub enum Error {
-    IO(io::Error),
-    Unknown,
-}
-
-impl From<io::Error> for Error {
-    fn from(e: io::Error) -> Error {
-        Error::IO(e)
-    }
-}
 
 #[derive(Debug)]
 pub struct UserData {

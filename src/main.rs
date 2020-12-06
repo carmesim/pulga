@@ -1,3 +1,4 @@
+mod error;
 mod newfetch;
 
 use colored::Colorize; // This trait allows us to use colors on Strings and &strs
