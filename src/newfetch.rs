@@ -6,10 +6,11 @@ use std::{
     cmp,
     collections::HashMap,
     env,
-    ffi::{CStr, OsString},
+    ffi::{CStr, OsStr, OsString},
     fs, mem,
+    os::unix::ffi::OsStrExt,
     path::PathBuf,
-    ptr, str,
+    ptr,
 };
 
 #[derive(Debug)]
@@ -46,29 +47,33 @@ pub struct MemInfo {
 pub fn home_dir() -> Option<PathBuf> {
     // Returns the home directory as specified by the HOME directory
 
-    env::var_os("HOME")
-        .or_else(|| unsafe {
-            let mut buf = Vec::with_capacity(2048);
-            let mut passwd: passwd = mem::zeroed();
-            let mut home_dir_result = ptr::null_mut();
-            let getpwuid_r_code = getpwuid_r(
+    let result = env::var_os("HOME").map(PathBuf::from).or_else(|| {
+        let mut buf = Vec::with_capacity(2048);
+        let mut home_dir_result = ptr::null_mut();
+
+        let mut passwd: passwd = unsafe { mem::zeroed() };
+
+        let getpwuid_r_code = unsafe {
+            getpwuid_r(
                 getuid(),
                 &mut passwd,
                 buf.as_mut_ptr(),
                 buf.capacity(),
                 &mut home_dir_result,
-            );
+            )
+        };
 
-            match getpwuid_r_code {
-                0 if !home_dir_result.is_null() => {
-                    let ptr = passwd.pw_dir as *const _;
-                    let bytes = CStr::from_ptr(ptr).to_bytes().to_vec();
-                    Some(OsString::from(str::from_utf8(&bytes).unwrap()))
-                },
-                _ => None,
-            }
-        })
-        .map(PathBuf::from)
+        if getpwuid_r_code == 0 && !home_dir_result.is_null() {
+            let cstr = unsafe { CStr::from_ptr(passwd.pw_dir) };
+            let os_str = OsStr::from_bytes(cstr.to_bytes());
+            let path: PathBuf = OsString::from(os_str).into();
+            Some(path)
+        } else {
+            None
+        }
+    });
+
+    result
 }
 
 // This function was adapted from sys-info by Siyu Wang (MIT-licensed)
