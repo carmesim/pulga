@@ -1,8 +1,10 @@
 use crate::{DesktopEnv, Platform};
 
-use std::ffi::{c_void, OsString};
-use std::mem;
-use std::os::unix::ffi::OsStringExt;
+use std::{
+    ffi::{c_void, OsString},
+    mem,
+    os::unix::ffi::OsStringExt,
+};
 
 #[cfg(target_os = "macos")]
 use std::{
@@ -55,14 +57,8 @@ extern "system" {
         encoding: u32,
     ) -> c_uchar;
     fn CFStringGetLength(the_string: *mut c_void) -> c_long;
-    fn CFStringGetMaximumSizeForEncoding(
-        length: c_long,
-        encoding: u32,
-    ) -> c_long;
-    fn SCDynamicStoreCopyComputerName(
-        store: *mut c_void,
-        encoding: *mut u32,
-    ) -> *mut c_void;
+    fn CFStringGetMaximumSizeForEncoding(length: c_long, encoding: u32) -> c_long;
+    fn SCDynamicStoreCopyComputerName(store: *mut c_void, encoding: *mut u32) -> *mut c_void;
     fn CFRelease(cf: *const c_void);
 }
 
@@ -97,14 +93,13 @@ fn os_from_cfstring(string: *mut c_void) -> OsString {
 
     unsafe {
         let len = CFStringGetLength(string);
-        let capacity =
-            CFStringGetMaximumSizeForEncoding(len, 134_217_984 /*UTF8*/) + 1;
+        let capacity = CFStringGetMaximumSizeForEncoding(len, 134_217_984 /* UTF8 */) + 1;
         let mut out = Vec::with_capacity(capacity as usize);
         if CFStringGetCString(
             string,
             out.as_mut_ptr(),
             capacity,
-            134_217_984, /*UTF8*/
+            134_217_984, /* UTF8 */
         ) != 0
         {
             out.set_len(strlen(out.as_ptr().cast())); // Remove trailing NUL byte
@@ -174,7 +169,7 @@ fn fancy_fallback(result: Result<&str, String>) -> String {
             '.' | '-' | '_' => {
                 new.push(' ');
                 cap = true;
-            }
+            },
             a => {
                 if cap {
                     cap = false;
@@ -184,7 +179,7 @@ fn fancy_fallback(result: Result<&str, String>) -> String {
                 } else {
                     new.push(a);
                 }
-            }
+            },
         }
     }
     new
@@ -200,7 +195,7 @@ fn fancy_fallback_os(result: Result<OsString, OsString>) -> OsString {
             };
 
             fancy_fallback(cs).into()
-        }
+        },
     }
 }
 
@@ -231,10 +226,8 @@ pub fn devicename() -> String {
             let mut j = i.split('=');
 
             match j.next().unwrap() {
-                "PRETTY_HOSTNAME" => {
-                    return j.next().unwrap().trim_matches('"').to_string()
-                }
-                _ => {}
+                "PRETTY_HOSTNAME" => return j.next().unwrap().trim_matches('"').to_string(),
+                _ => {},
             }
         }
     }
@@ -248,9 +241,7 @@ pub fn devicename() -> String {
 
 #[cfg(target_os = "macos")]
 pub fn devicename_os() -> OsString {
-    let out = os_from_cfstring(unsafe {
-        SCDynamicStoreCopyComputerName(null_mut(), null_mut())
-    });
+    let out = os_from_cfstring(unsafe { SCDynamicStoreCopyComputerName(null_mut(), null_mut()) });
 
     let computer = if out.as_bytes().is_empty() {
         Err(hostname_os())
@@ -287,28 +278,21 @@ fn distro_xml(data: String) -> Option<String> {
                 if line.starts_with("<key>") {
                     match line["<key>".len()..].trim_end_matches("</key>") {
                         "ProductName" => set_product_name = true,
-                        "ProductUserVisibleVersion" => {
-                            set_user_visible_version = true
-                        }
+                        "ProductUserVisibleVersion" => set_user_visible_version = true,
                         "ProductVersion" => {
                             if user_visible_version.is_none() {
                                 set_user_visible_version = true
                             }
-                        }
-                        _ => {}
+                        },
+                        _ => {},
                     }
                 } else if line.starts_with("<string>") {
                     if set_product_name {
-                        product_name = Some(
-                            line["<string>".len()..]
-                                .trim_end_matches("</string>"),
-                        );
+                        product_name = Some(line["<string>".len()..].trim_end_matches("</string>"));
                         set_product_name = false;
                     } else if set_user_visible_version {
-                        user_visible_version = Some(
-                            line["<string>".len()..]
-                                .trim_end_matches("</string>"),
-                        );
+                        user_visible_version =
+                            Some(line["<string>".len()..].trim_end_matches("</string>"));
                         set_user_visible_version = false;
                     }
                 }
@@ -335,13 +319,11 @@ pub fn distro_os() -> Option<OsString> {
 
 #[cfg(target_os = "macos")]
 pub fn distro() -> Option<String> {
-    if let Ok(data) = std::fs::read_to_string(
-        "/System/Library/CoreServices/ServerVersion.plist",
-    ) {
+    if let Ok(data) = std::fs::read_to_string("/System/Library/CoreServices/ServerVersion.plist") {
         distro_xml(data)
-    } else if let Ok(data) = std::fs::read_to_string(
-        "/System/Library/CoreServices/SystemVersion.plist",
-    ) {
+    } else if let Ok(data) =
+        std::fs::read_to_string("/System/Library/CoreServices/SystemVersion.plist")
+    {
         distro_xml(data)
     } else {
         None
@@ -369,11 +351,9 @@ pub fn distro() -> Option<String> {
         let mut j = i.split('=');
 
         match j.next()? {
-            "PRETTY_NAME" => {
-                return Some(j.next()?.trim_matches('"').to_string())
-            }
+            "PRETTY_NAME" => return Some(j.next()?.trim_matches('"').to_string()),
             "NAME" => fallback = Some(j.next()?.trim_matches('"').to_string()),
-            _ => {}
+            _ => {},
         }
     }
 
@@ -393,9 +373,7 @@ pub const fn desktop_env() -> DesktopEnv {
 #[cfg(not(target_os = "macos"))]
 #[inline(always)]
 pub fn desktop_env() -> DesktopEnv {
-    match std::env::var_os("DESKTOP_SESSION")
-        .map(|env| env.to_string_lossy().to_string())
-    {
+    match std::env::var_os("DESKTOP_SESSION").map(|env| env.to_string_lossy().to_string()) {
         Some(env_orig) => {
             let env = env_orig.to_uppercase();
 
@@ -414,7 +392,7 @@ pub fn desktop_env() -> DesktopEnv {
             } else {
                 DesktopEnv::Unknown(env_orig)
             }
-        }
+        },
         // TODO: Other Linux Desktop Environments
         None => DesktopEnv::Unknown("Unknown".to_string()),
     }

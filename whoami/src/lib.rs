@@ -92,31 +92,27 @@ impl std::fmt::Display for DesktopEnv {
             write!(f, "")?; // Exofetch modification
         }
 
-        write!(
-            f,
-            "{}",
-            match self {
-                DesktopEnv::Gnome => "Gnome",
-                DesktopEnv::Windows => "Windows",
-                DesktopEnv::Lxde => "LXDE",
-                DesktopEnv::Openbox => "Openbox",
-                DesktopEnv::Mate => "Mate",
-                DesktopEnv::Xfce => "XFCE",
-                DesktopEnv::Kde => "KDE",
-                DesktopEnv::Cinnamon => "Cinnamon",
-                DesktopEnv::I3 => "I3",
-                DesktopEnv::Aqua => "Aqua",
-                DesktopEnv::Ios => "IOS",
-                DesktopEnv::Android => "Android",
-                DesktopEnv::WebBrowser => "Web Browser",
-                DesktopEnv::Console => "Console",
-                DesktopEnv::Ubuntu => "Ubuntu",
-                DesktopEnv::Dive => "Dive",
-                DesktopEnv::Ermine => "Ermine",
-                DesktopEnv::Orbital => "Orbital",
-                DesktopEnv::Unknown(a) => &a,
-            }
-        )
+        write!(f, "{}", match self {
+            DesktopEnv::Gnome => "Gnome",
+            DesktopEnv::Windows => "Windows",
+            DesktopEnv::Lxde => "LXDE",
+            DesktopEnv::Openbox => "Openbox",
+            DesktopEnv::Mate => "Mate",
+            DesktopEnv::Xfce => "XFCE",
+            DesktopEnv::Kde => "KDE",
+            DesktopEnv::Cinnamon => "Cinnamon",
+            DesktopEnv::I3 => "I3",
+            DesktopEnv::Aqua => "Aqua",
+            DesktopEnv::Ios => "IOS",
+            DesktopEnv::Android => "Android",
+            DesktopEnv::WebBrowser => "Web Browser",
+            DesktopEnv::Console => "Console",
+            DesktopEnv::Ubuntu => "Ubuntu",
+            DesktopEnv::Dive => "Dive",
+            DesktopEnv::Ermine => "Ermine",
+            DesktopEnv::Orbital => "Orbital",
+            DesktopEnv::Unknown(a) => &a,
+        })
     }
 }
 
@@ -146,25 +142,21 @@ impl std::fmt::Display for Platform {
             write!(f, "Unknown: ")?;
         }
 
-        write!(
-            f,
-            "{}",
-            match self {
-                Platform::Linux => "Linux",
-                Platform::Bsd => "BSD",
-                Platform::Windows => "Windows",
-                Platform::MacOS => "Mac OS",
-                Platform::Ios => "iOS",
-                Platform::Android => "Android",
-                Platform::Nintendo => "Nintendo",
-                Platform::Xbox => "XBox",
-                Platform::PlayStation => "PlayStation",
-                Platform::Dive => "Dive OS",
-                Platform::Fuchsia => "Fuchsia",
-                Platform::Redox => "Redox",
-                Platform::Unknown(a) => a,
-            }
-        )
+        write!(f, "{}", match self {
+            Platform::Linux => "Linux",
+            Platform::Bsd => "BSD",
+            Platform::Windows => "Windows",
+            Platform::MacOS => "Mac OS",
+            Platform::Ios => "iOS",
+            Platform::Android => "Android",
+            Platform::Nintendo => "Nintendo",
+            Platform::Xbox => "XBox",
+            Platform::PlayStation => "PlayStation",
+            Platform::Dive => "Dive OS",
+            Platform::Fuchsia => "Fuchsia",
+            Platform::Redox => "Redox",
+            Platform::Unknown(a) => a,
+        })
     }
 }
 
