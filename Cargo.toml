@@ -10,3 +10,4 @@ edition = "2018"
 libc = "0.2"
 colored = "2"
 whoami = { path = "whoami" }
+indoc = "*"

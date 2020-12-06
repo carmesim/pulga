@@ -1,4 +1,5 @@
 mod error;
+mod logo;
 mod newfetch;
 
 use colored::Colorize; // This trait allows us to use colors on Strings and &strs
@@ -18,4 +19,6 @@ fn main() {
         user_data.used_memory.red(),
         user_data.total_memory.red()
     );
+
+    println!("{}", logo::ARGH_LOGO);
 }
