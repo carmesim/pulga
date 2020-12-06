@@ -1,5 +1,5 @@
 [package]
-name = "exofetch-rs"
+name = "newfetch-rs"
 version = "0.1.0"
 authors = ["Vinícius R. Miguel <36349314+vrmiguel@users.noreply.github.com>"]
 edition = "2018"

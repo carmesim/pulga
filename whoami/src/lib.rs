@@ -89,7 +89,7 @@ pub enum DesktopEnv {
 impl std::fmt::Display for DesktopEnv {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if let DesktopEnv::Unknown(_) = self {
-            write!(f, "")?; // Exofetch modification
+            write!(f, "")?; // newfetch modification
         }
 
         write!(f, "{}", match self {

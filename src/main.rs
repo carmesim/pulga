@@ -1,9 +1,9 @@
-mod exofetch;
+mod newfetch;
 
 use colored::Colorize; // This trait allows us to use colors on Strings and &strs
 
 fn main() {
-    let user_data = exofetch::get_user_data();
+    let user_data = newfetch::get_user_data();
     println!("{}: {}", "username".cyan(), user_data.username.red());
     println!("{}: {}", "hostname".cyan(), user_data.hostname.red());
     println!("{}: {}", "device name".cyan(), user_data.devicename.red());
