@@ -5,22 +5,35 @@ mod newfetch;
 use crate::newfetch::UserData;
 
 use indoc::indoc;
-use sugars::{boxed, hmap};
-use termion::color::*;
+// use sugars::{boxed, hmap};
+use termion::{cursor::*, color::*};
 
 use std::collections::HashMap;
 
-fn show_logo() {
-    let mut color_map: HashMap<char, Box<dyn Color>> = hmap! {};
-    color_map.insert('k', boxed!(Black));
-    color_map.insert('b', boxed!(Blue));
-    color_map.insert('c', boxed!(Cyan));
-    color_map.insert('g', boxed!(Green));
-    color_map.insert('m', boxed!(Magenta));
-    color_map.insert('r', boxed!(Red));
-    color_map.insert('R', boxed!(Reset));
-    color_map.insert('w', boxed!(White));
-    color_map.insert('y', boxed!(Yellow));
+fn show(text: String, logo: &str) {
+    let mut lines: Vec<String> = text.lines().map(|x| x.trim().to_string()).collect();
+
+    // Logo tem 14 de largura hmm
+    println!("{}", logo);
+    print!("{}", Up(14));
+
+    for (i, line) in lines.iter().enumerate() {
+        print!("{} {}{}{}", Right(31), line, Left(1000), Down(1));
+    }
+
+    print!("{}", Down(17 /* - lines.len() as u16 */));
+
+    // Skip colors for now
+    //    let mut color_map: HashMap<char, Box<dyn Color>> = hmap! {};
+    //    color_map.insert('k', boxed!(Black));
+    //    color_map.insert('b', boxed!(Blue));
+    //    color_map.insert('c', boxed!(Cyan));
+    //    color_map.insert('g', boxed!(Green));
+    //    color_map.insert('m', boxed!(Magenta));
+    //    color_map.insert('r', boxed!(Red));
+    //    color_map.insert('R', boxed!(Reset));
+    //    color_map.insert('w', boxed!(White));
+    //    color_map.insert('y', boxed!(Yellow));
 
     // k // Black
     // b // Blue
@@ -46,7 +59,7 @@ fn main() {
     let data: UserData = newfetch::get_user_data();
 
     #[rustfmt::skip]
-    println!(indoc! {
+    let text = format!(indoc! {
         "{c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
@@ -70,6 +83,10 @@ fn main() {
         r = Fg(LightRed)
     );
 
+    // println!("{}", text.len());
+
     let logo = logos::choose_logo(logos::Logo::Manjaro);
-    println!("{}", logo);
+    // println!("{}", logo);
+
+    show(text, logo);
 }
