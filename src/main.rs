@@ -5,13 +5,13 @@ mod newfetch;
 use crate::newfetch::UserData;
 
 use indoc::indoc;
-// use sugars::{boxed, hmap};
+use sugars::{boxed, hmap};
 use termion::{color::*, cursor::*};
 
 use std::collections::HashMap;
 
 fn show(text: String, logo: &str) {
-    let mut lines: Vec<String> = text.lines().map(|x| x.trim().to_string()).collect();
+    let lines: Vec<String> = text.lines().map(|x| x.trim().to_string()).collect();
 
     // Logo tem 14 de largura hmm
     println!("{}", logo);
@@ -23,27 +23,22 @@ fn show(text: String, logo: &str) {
 
     print!("{}", Down(17));
 
-    // Skip colors for now
-    //    let mut color_map: HashMap<char, Box<dyn Color>> = hmap! {};
-    //    color_map.insert('k', boxed!(Black));
-    //    color_map.insert('b', boxed!(Blue));
-    //    color_map.insert('c', boxed!(Cyan));
-    //    color_map.insert('g', boxed!(Green));
-    //    color_map.insert('m', boxed!(Magenta));
-    //    color_map.insert('r', boxed!(Red));
-    //    color_map.insert('R', boxed!(Reset));
-    //    color_map.insert('w', boxed!(White));
-    //    color_map.insert('y', boxed!(Yellow));
+    #[rustfmt::skip]
+    let _color_map = {
+        let mut m: HashMap<char, Box<dyn Color>> = hmap! {};
+        m.insert('k', boxed!(Black));  // k // Black
+        m.insert('b', boxed!(Blue));   // b // Blue
+        m.insert('c', boxed!(Cyan));   // c // Cyan
+        m.insert('g', boxed!(Green));  // g // Green
+        m.insert('m', boxed!(Magenta));// m // Magenta
+        m.insert('r', boxed!(Red));    // r // Red
+        m.insert('w', boxed!(White));  // w // White
+        m.insert('y', boxed!(Yellow)); // y // Yellow
+        // Uppercase 'R' resets all colors
+        m.insert('R', boxed!(Reset));  // R // Reset
+        m
+    };
 
-    // k // Black
-    // b // Blue
-    // c // Cyan
-    // g // Green
-    // m // Magenta
-    // r // Red
-    // R // Reset   Reset colors to defaults.
-    // w // White
-    // y // Yellow
     // Ignore for now?
     // LightBlack  High-intensity light black.
     // LightBlue   High-intensity light blue.

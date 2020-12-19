@@ -1,5 +1,6 @@
 use indoc::indoc;
 
+#[allow(dead_code)]
 pub enum Logo {
     Arch,
     Manjaro,
@@ -12,7 +13,7 @@ pub fn choose_logo(logo: Logo) -> &'static str {
     }
 }
 
-const ARCH_LOGO: &'static str = indoc! {"
+const ARCH_LOGO: &str = indoc! {"
     {c}                  -`
     {c}                 .o+`
     {c}                `ooo/
@@ -33,7 +34,7 @@ const ARCH_LOGO: &'static str = indoc! {"
     {c}`++:.                           `-/+/
     {c}.`                                 `/"};
 
-const MANJARO_LOGO: &'static str = indoc! {"
+const MANJARO_LOGO: &str = indoc! {"
     {g}██████████████████  ████████
     {g}██████████████████  ████████
     {g}██████████████████  ████████

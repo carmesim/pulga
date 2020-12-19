@@ -47,7 +47,7 @@ pub struct MemInfo {
 pub fn home_dir() -> Option<PathBuf> {
     // Returns the home directory as specified by the HOME directory
 
-    let result = env::var_os("HOME").map(PathBuf::from).or_else(|| {
+    env::var_os("HOME").map(PathBuf::from).or_else(|| {
         let mut buf = Vec::with_capacity(2048);
         let mut home_dir_result = ptr::null_mut();
 
@@ -71,9 +71,7 @@ pub fn home_dir() -> Option<PathBuf> {
         } else {
             None
         }
-    });
-
-    result
+    })
 }
 
 // This function was adapted from sys-info by Siyu Wang (MIT-licensed)
@@ -125,7 +123,7 @@ fn pretty_bytes(num: f64) -> String {
     let num = num.abs();
 
     const UNITS: &[&str] = &["B", "kB", "MB", "GB", "TB"];
-    if num < 1_f64 {
+    if num < 1.0 {
         return format!("{}{} {}", negative, num, "B");
     }
     let v1 = (num.ln() / 1024_f64.ln()).floor() as i32;
