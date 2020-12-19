@@ -26,9 +26,3 @@ categories = ["os"]
 [target.'cfg(target_arch = "wasm32")'.dependencies.cala_core]
 version = "0.1"
 optional = true
-
-[features]
-default = []
-cala = ["cala_core/cala"]
-stdweb = ["cala_core/stdweb"]
-wasm-bindgen = ["cala_core/wasm-bindgen"]

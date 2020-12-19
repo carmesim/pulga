@@ -24,7 +24,6 @@ pub struct UserData {
     pub shell: String,        // User's standard shell
     pub desk_env: String,     // User's desktop environment
     pub distro: String,       // User's distro
-    pub platform: String,     // User's platform
     pub total_memory: String, // Total memory in human-readable form
     pub used_memory: String,  // Used memory in human-readable form
 }
@@ -143,7 +142,6 @@ pub fn get_user_data() -> UserData {
         shell,
         desk_env: whoami::desktop_env().to_string(),
         distro,
-        platform: whoami::platform().to_string(),
         total_memory: pretty_bytes((mem_info.total * 1024) as f64),
         used_memory: pretty_bytes(((mem_info.total - mem_info.avail) * 1024) as f64),
     }

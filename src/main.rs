@@ -3,7 +3,6 @@ mod logos;
 mod newfetch;
 
 use crate::newfetch::UserData;
-use crate::newfetch::get_shell;
 
 use indoc::indoc;
 use sugars::{boxed, hmap};
@@ -89,7 +88,7 @@ fn main() {
         "device name", data.devicename,
         "uptime", newfetch::get_uptime().unwrap(),
         "home dir.", data.hmd,
-        "platform", data.platform,
+        "shell", data.shell,
         "distro", data.distro,
         "desktop env.", data.desk_env,
         "memory usage", data.used_memory, data.total_memory,
@@ -102,9 +101,7 @@ fn main() {
     // println!("{}", text.len());
 
     let logo = logos::choose_logo(logos::Logo::Manjaro);
-    // println!("{}", logo);
-
-    dbg!(get_shell());
+    // println!("{}", logo);    
 
     show(text, logo);
 }

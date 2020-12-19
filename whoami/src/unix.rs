@@ -113,49 +113,6 @@ fn os_from_cfstring(string: *mut c_void) -> OsString {
     }
 }
 
-// This function must allocate, because a slice or Cow<OsStr> would still
-// reference `passwd` which is dropped when this function returns.
-#[inline(always)]
-fn getpwuid(real: bool) -> Result<OsString, OsString> {
-    const BUF_SIZE: usize = 16_384; // size from the man page
-    let mut buffer = mem::MaybeUninit::<[u8; BUF_SIZE]>::uninit();
-    let mut passwd = mem::MaybeUninit::<PassWd>::uninit();
-    let mut _passwd = mem::MaybeUninit::<*mut PassWd>::uninit();
-
-    // Get PassWd `struct`.
-    let passwd = unsafe {
-        getpwuid_r(
-            geteuid(),
-            passwd.as_mut_ptr(),
-            buffer.as_mut_ptr() as *mut c_void,
-            BUF_SIZE,
-            _passwd.as_mut_ptr(),
-        );
-
-        passwd.assume_init()
-    };
-
-    // Extract names.
-    if real {
-        let string = os_from_cstring(passwd.pw_gecos);
-        if string.is_empty() {
-            Err(os_from_cstring(passwd.pw_name))
-        } else {
-            Ok(string)
-        }
-    } else {
-        Ok(os_from_cstring(passwd.pw_name))
-    }
-}
-
-pub fn username() -> String {
-    string_from_os(username_os())
-}
-
-pub fn username_os() -> OsString {
-    // Unwrap never fails
-    getpwuid(false).unwrap()
-}
 
 fn fancy_fallback(result: Result<&str, String>) -> String {
     let mut cap = true;
@@ -183,29 +140,6 @@ fn fancy_fallback(result: Result<&str, String>) -> String {
         }
     }
     new
-}
-
-fn fancy_fallback_os(result: Result<OsString, OsString>) -> OsString {
-    match result {
-        Ok(success) => success,
-        Err(fallback) => {
-            let cs = match fallback.to_str() {
-                Some(a) => Ok(a),
-                None => Err(fallback.to_string_lossy().to_string()),
-            };
-
-            fancy_fallback(cs).into()
-        },
-    }
-}
-
-pub fn realname() -> String {
-    string_from_os(realname_os())
-}
-
-pub fn realname_os() -> OsString {
-    // If no real name is provided, guess based on username.
-    fancy_fallback_os(getpwuid(true))
 }
 
 #[cfg(not(target_os = "macos"))]

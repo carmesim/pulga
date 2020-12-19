@@ -173,30 +173,6 @@ mod unix;
 #[cfg(not(any(target_os = "windows", target_arch = "wasm32")))]
 use self::unix as native;
 
-/// Get the user's username.
-#[inline(always)]
-pub fn username() -> String {
-    native::username()
-}
-
-/// Get the user's username.
-#[inline(always)]
-pub fn username_os() -> OsString {
-    native::username_os()
-}
-
-/// Get the user's real name.
-#[inline(always)]
-pub fn realname() -> String {
-    native::realname()
-}
-
-/// Get the user's real name.
-#[inline(always)]
-pub fn realname_os() -> OsString {
-    native::realname_os()
-}
-
 /// Get the device name (also known as "Pretty Name"), used to identify device
 /// for bluetooth pairing.
 #[inline(always)]
@@ -209,18 +185,6 @@ pub fn devicename() -> String {
 #[inline(always)]
 pub fn devicename_os() -> OsString {
     native::devicename_os()
-}
-
-/// Get the host device's hostname.
-#[inline(always)]
-pub fn hostname() -> String {
-    native::hostname()
-}
-
-/// Get the host device's hostname.
-#[inline(always)]
-pub fn hostname_os() -> OsString {
-    native::hostname_os()
 }
 
 /// Get the name of the operating system distribution and (possibly) version.
