@@ -126,6 +126,13 @@ pub fn get_user_data() -> UserData {
     } else {
         "Unknown".to_string()
     };
+    
+    let distro = get_distro();
+    let distro = if distro.is_some() {
+        distro.unwrap()
+    } else {
+        "Linux".to_string()
+    };
 
     UserData {
         username,
@@ -135,7 +142,7 @@ pub fn get_user_data() -> UserData {
         hmd: home_dir,
         shell,
         desk_env: whoami::desktop_env().to_string(),
-        distro: whoami::distro(),
+        distro,
         platform: whoami::platform().to_string(),
         total_memory: pretty_bytes((mem_info.total * 1024) as f64),
         used_memory: pretty_bytes(((mem_info.total - mem_info.avail) * 1024) as f64),
@@ -164,6 +171,27 @@ pub fn get_hostname() -> Option<String> {
     } else {
         Some(hostname.unwrap().to_string())
     }
+}
+
+pub fn get_distro() -> Option<String> {
+    let program = std::fs::read_to_string("/etc/os-release");
+    if program.is_err() {
+        return None;
+    }
+    let program  = program.unwrap().into_bytes();
+
+    let distro = String::from_utf8_lossy(&program);
+
+    for i in distro.split('\n') {
+        let mut j = i.split('=');
+
+        match j.next()? {
+            "PRETTY_NAME" => return Some(j.next()?.trim_matches('"').to_string()),
+            _ => {}
+        }
+    }
+
+    Some("Linux".to_string())
 }
 
 pub fn get_username_home_dir_and_shell () -> Option<(String, String, String)> {
