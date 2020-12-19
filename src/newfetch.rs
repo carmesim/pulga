@@ -1,6 +1,6 @@
 use crate::error::Error;
 
-use libc::{getpwuid_r, getuid, passwd};
+use libc::{getpwuid_r, getuid, passwd, gethostname, c_char, sysconf, _SC_HOST_NAME_MAX};
 
 use std::{
     cmp,
@@ -8,6 +8,7 @@ use std::{
     env,
     ffi::{CStr, OsStr, OsString},
     fs, mem,
+    str::from_utf8,
     os::unix::ffi::OsStrExt,
     path::PathBuf,
     ptr,
@@ -20,6 +21,7 @@ pub struct UserData {
     pub devicename: String,   // User's device name
     pub cwd: String,          // User's current working directory. TODO: unneeded?
     pub hmd: String,          // User's home directory
+    pub shell: String,        // User's standard shell
     pub desk_env: String,     // User's desktop environment
     pub distro: String,       // User's distro
     pub platform: String,     // User's platform
@@ -41,37 +43,6 @@ pub struct MemInfo {
     /// Total swap memory.
     pub swap_total: u64,
     pub swap_free: u64,
-}
-
-/// Returns the user's home directory
-pub fn home_dir() -> Option<PathBuf> {
-    // Returns the home directory as specified by the HOME directory
-
-    env::var_os("HOME").map(PathBuf::from).or_else(|| {
-        let mut buf = Vec::with_capacity(2048);
-        let mut home_dir_result = ptr::null_mut();
-
-        let mut passwd: passwd = unsafe { mem::zeroed() };
-
-        let getpwuid_r_code = unsafe {
-            getpwuid_r(
-                getuid(),
-                &mut passwd,
-                buf.as_mut_ptr(),
-                buf.capacity(),
-                &mut home_dir_result,
-            )
-        };
-
-        if getpwuid_r_code == 0 && !home_dir_result.is_null() {
-            let cstr = unsafe { CStr::from_ptr(passwd.pw_dir) };
-            let os_str = OsStr::from_bytes(cstr.to_bytes());
-            let path: PathBuf = OsString::from(os_str).into();
-            Some(path)
-        } else {
-            None
-        }
-    })
 }
 
 // This function was adapted from sys-info by Siyu Wang (MIT-licensed)
@@ -136,20 +107,33 @@ fn pretty_bytes(num: f64) -> String {
 
 /// get_user_data returns a new UserData structure
 pub fn get_user_data() -> UserData {
+
+    let res = get_username_home_dir_and_shell();
+    let (username, home_dir, shell) = if res.is_some() {
+        res.unwrap()
+    } else {
+        ("Unknown".to_string(), "Unknown".to_string(), "Unknown".to_string())
+    };
+
     // Current working directory
     let cwd: String = env::current_dir().unwrap().to_string_lossy().into();
 
-    // Home directory
-    let hmd: String = home_dir().unwrap().to_string_lossy().into();
-
     let mem_info = mem_info().unwrap();
 
+    let hostname_res = get_hostname();
+    let hostname = if hostname_res.is_some() {
+        hostname_res.unwrap()
+    } else {
+        "Unknown".to_string()
+    };
+
     UserData {
-        username: whoami::username(),
-        hostname: whoami::hostname(),
+        username,
+        hostname,
         devicename: whoami::devicename(),
         cwd,
-        hmd,
+        hmd: home_dir,
+        shell,
         desk_env: whoami::desktop_env().to_string(),
         distro: whoami::distro(),
         platform: whoami::platform().to_string(),
@@ -158,17 +142,76 @@ pub fn get_user_data() -> UserData {
     }
 }
 
-pub fn get_shell()->Option<PathBuf> {
+pub fn get_hostname() -> Option<String> {
+    let hostname_max = unsafe { 
+        sysconf(_SC_HOST_NAME_MAX) 
+    } as usize;
+    let mut buffer = vec![0 as u8; hostname_max + 1]; // +1 to account for the NUL character
+    let ret = unsafe { 
+        gethostname(buffer.as_mut_ptr() as *mut c_char, buffer.len()) 
+    };
+    if ret != 0 {
+        return None;
+    }
+    let end = buffer
+        .iter()
+        .position(|&b| b == 0)
+        .unwrap_or_else(|| buffer.len());
+    buffer.resize(end, 0);
+    let hostname = from_utf8(&buffer);
+    if hostname.is_err() {
+        None
+    } else {
+        Some(hostname.unwrap().to_string())
+    }
+}
+
+pub fn get_username_home_dir_and_shell () -> Option<(String, String, String)> {
     let mut buf = Vec::with_capacity(2048);
-    let mut home_dir_result = ptr::null_mut();
+    let mut result = ptr::null_mut();
   
     let mut passwd : passwd = unsafe{mem::zeroed()};
   
     let getpwuid_r_code =
         unsafe{getpwuid_r(getuid(), &mut passwd, buf.as_mut_ptr(), buf.capacity(),
-                          &mut home_dir_result, )};
+                          &mut result, )};
   
-    if getpwuid_r_code == 0 && !home_dir_result.is_null() {
+    if getpwuid_r_code == 0 && !result.is_null() {
+
+        let username_cstr = unsafe{CStr::from_ptr(passwd.pw_name)};
+        let username_os_str = OsStr::from_bytes(username_cstr.to_bytes());
+        let username : PathBuf = OsString::from(username_os_str).into();
+        let username = username.to_string_lossy().into();
+
+        let hd_cstr = unsafe{CStr::from_ptr(passwd.pw_dir)};
+        let hd_os_str = OsStr::from_bytes(hd_cstr.to_bytes());
+        let hd_path : PathBuf = OsString::from(hd_os_str).into();
+        let home_dir = hd_path.to_string_lossy().into();
+        
+        let sh_cstr = unsafe{CStr::from_ptr(passwd.pw_shell)};
+        let sh_os_str = OsStr::from_bytes(sh_cstr.to_bytes());
+        let sh_path : PathBuf = OsString::from(sh_os_str).into();
+        let shell = sh_path.to_string_lossy().into();
+
+        
+        Some((username, home_dir, shell))
+      }
+    else {
+      None
+    }
+}
+
+pub fn get_shell()->Option<PathBuf> {
+    let mut buf = Vec::with_capacity(2048);
+    let mut result = ptr::null_mut();
+  
+    let mut passwd : passwd = unsafe{mem::zeroed()};
+  
+    let getpwuid_r_code =
+        unsafe{getpwuid_r(getuid(), &mut passwd, buf.as_mut_ptr(), buf.capacity(),
+                          &mut result, )};
+  
+    if getpwuid_r_code == 0 && !result.is_null() {
         let cstr = unsafe{CStr::from_ptr(passwd.pw_shell)};
         let os_str = OsStr::from_bytes(cstr.to_bytes());
         let path : PathBuf = OsString::from(os_str).into();
@@ -177,7 +220,7 @@ pub fn get_shell()->Option<PathBuf> {
     else {
       None
     }
-  }
+}
 
 pub fn get_uptime() -> Option<String> {
     let meminfo = fs::read_to_string("/proc/uptime").ok()?;
