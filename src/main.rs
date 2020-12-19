@@ -4,10 +4,9 @@ mod newfetch;
 
 use crate::newfetch::UserData;
 
-
 use indoc::indoc;
 // use sugars::{boxed, hmap};
-use termion::{cursor::*, color::*};
+use termion::{color::*, cursor::*};
 
 use std::collections::HashMap;
 
@@ -22,7 +21,7 @@ fn show(text: String, logo: &str) {
         print!("{} {}{}{}", Right(31), line, Left(1000), Down(1));
     }
 
-    print!("{}", Down(17 /* - lines.len() as u16 */));
+    print!("{}", Down(17));
 
     // Skip colors for now
     //    let mut color_map: HashMap<char, Box<dyn Color>> = hmap! {};
@@ -68,11 +67,13 @@ fn main() {
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}/{r}{}{R}"
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R} / {r}{}{R}"
         },
         "username", data.username,
         "hostname", data.hostname,
         "device name", data.devicename,
+        "uptime", newfetch::get_uptime().unwrap(),
         "home dir.", data.hmd,
         "platform", data.platform,
         "distro", data.distro,

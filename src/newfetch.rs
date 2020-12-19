@@ -160,70 +160,48 @@ pub fn get_user_data() -> UserData {
     }
 }
 
-pub fn get_uptime() -> Result<String, Error> {
-    let meminfo = fs::read_to_string("/proc/uptime")?;
-    let meminfo: Vec<&str> = meminfo.split(' ').collect();
-    let uptime = meminfo[0].parse::<f64>();
-    if let Err(err) = uptime {
-        eprintln!("Couldn't parse uptime.");
-        // TODO: This sucks.
-        return Err(Error::Unknown);
+pub fn get_uptime() -> Option<String> {
+    let meminfo = fs::read_to_string("/proc/uptime").ok()?;
+    let meminfo: &str = meminfo.split(' ').next()?;
+    let uptime_in_centiseconds = meminfo.parse::<f64>();
+
+    let periods = vec![
+        (60 * 60 * 24 * 365, "year"),
+        (60 * 60 * 24 * 30, "month"),
+        (60 * 60 * 24, "day"),
+        (60 * 60, "hour"),
+        (60, "minute"),
+        (1, "second"),
+    ];
+
+    // Ignore decimal places
+    let mut uptime_in_seconds = uptime_in_centiseconds.ok()? as u64;
+    // Result
+    let mut uptime = String::new();
+
+    for (period, period_name) in periods {
+        let times = uptime_in_seconds / period;
+
+        if times > 0 {
+            // Add space between entries
+            if !uptime.is_empty() {
+                uptime.push(' ');
+            }
+
+            uptime.push_str(&format!("{} ", times));
+
+            // Add the "year" period name
+            uptime.push_str(period_name);
+
+            // Fix plural
+            if times > 1 {
+                uptime.push('s');
+            }
+
+            // Update for next
+            uptime_in_seconds %= period;
+        }
     }
-    let uptime = uptime.unwrap() as u64;
-    let years   =  uptime / 60 / 60 / 24   / 365;
-    let days    = (uptime / 60 / 60 / 24)  % 365;
-    let hours   = (uptime / 3600) % 24;
-    let minutes = (uptime / 60) % 60;
-    let seconds = uptime  % 60;
 
-    let mut result: String;
-
-    let years = if years > 0
-    {
-        format!("{} year{} ", years, 
-            if years > 1 { "s" } else { ""}
-        )
-    } else {
-        "".into()
-    };
-
-    // TODO: months?
-
-    let days = if days > 0
-    {
-        format!("{} day{} ", days, 
-            if days > 1 { "s" } else { ""}
-        )
-    } else {
-        "".into()
-    };
-
-    let hours = if hours > 0
-    {
-        format!("{} hour{} ", hours, 
-            if hours > 1 { "s" } else { "" }
-        )
-    } else {
-        "".into()
-    };
-
-    let minutes = if minutes > 0
-    {
-        format!("{} minute{} ", minutes, 
-            if minutes > 1 { "s" } else { ""}
-        )
-    } else {
-        "".into()
-    };
-
-    let seconds = if seconds > 0
-    {
-        format!("{} second{}", seconds, 
-            if seconds > 1 { "s" } else { ""}
-        )
-    } else {
-        "".into()
-    };
-
-    Ok(format!("{}{}{}{}{}", years, days, hours, minutes, seconds))
+    Some(uptime)
 }
