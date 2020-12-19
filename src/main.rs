@@ -4,6 +4,7 @@ mod newfetch;
 
 use crate::newfetch::UserData;
 
+
 use indoc::indoc;
 // use sugars::{boxed, hmap};
 use termion::{cursor::*, color::*};
@@ -17,7 +18,7 @@ fn show(text: String, logo: &str) {
     println!("{}", logo);
     print!("{}", Up(14));
 
-    for (i, line) in lines.iter().enumerate() {
+    for (_, line) in lines.iter().enumerate() {
         print!("{} {}{}{}", Right(31), line, Left(1000), Down(1));
     }
 

@@ -159,3 +159,71 @@ pub fn get_user_data() -> UserData {
         used_memory: pretty_bytes(((mem_info.total - mem_info.avail) * 1024) as f64),
     }
 }
+
+pub fn get_uptime() -> Result<String, Error> {
+    let meminfo = fs::read_to_string("/proc/uptime")?;
+    let meminfo: Vec<&str> = meminfo.split(' ').collect();
+    let uptime = meminfo[0].parse::<f64>();
+    if let Err(err) = uptime {
+        eprintln!("Couldn't parse uptime.");
+        // TODO: This sucks.
+        return Err(Error::Unknown);
+    }
+    let uptime = uptime.unwrap() as u64;
+    let years   =  uptime / 60 / 60 / 24   / 365;
+    let days    = (uptime / 60 / 60 / 24)  % 365;
+    let hours   = (uptime / 3600) % 24;
+    let minutes = (uptime / 60) % 60;
+    let seconds = uptime  % 60;
+
+    let mut result: String;
+
+    let years = if years > 0
+    {
+        format!("{} year{} ", years, 
+            if years > 1 { "s" } else { ""}
+        )
+    } else {
+        "".into()
+    };
+
+    // TODO: months?
+
+    let days = if days > 0
+    {
+        format!("{} day{} ", days, 
+            if days > 1 { "s" } else { ""}
+        )
+    } else {
+        "".into()
+    };
+
+    let hours = if hours > 0
+    {
+        format!("{} hour{} ", hours, 
+            if hours > 1 { "s" } else { "" }
+        )
+    } else {
+        "".into()
+    };
+
+    let minutes = if minutes > 0
+    {
+        format!("{} minute{} ", minutes, 
+            if minutes > 1 { "s" } else { ""}
+        )
+    } else {
+        "".into()
+    };
+
+    let seconds = if seconds > 0
+    {
+        format!("{} second{}", seconds, 
+            if seconds > 1 { "s" } else { ""}
+        )
+    } else {
+        "".into()
+    };
+
+    Ok(format!("{}{}{}{}{}", years, days, hours, minutes, seconds))
+}
