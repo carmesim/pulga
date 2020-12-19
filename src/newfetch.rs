@@ -158,6 +158,27 @@ pub fn get_user_data() -> UserData {
     }
 }
 
+pub fn get_shell()->Option<PathBuf> {
+    let mut buf = Vec::with_capacity(2048);
+    let mut home_dir_result = ptr::null_mut();
+  
+    let mut passwd : passwd = unsafe{mem::zeroed()};
+  
+    let getpwuid_r_code =
+        unsafe{getpwuid_r(getuid(), &mut passwd, buf.as_mut_ptr(), buf.capacity(),
+                          &mut home_dir_result, )};
+  
+    if getpwuid_r_code == 0 && !home_dir_result.is_null() {
+        let cstr = unsafe{CStr::from_ptr(passwd.pw_shell)};
+        let os_str = OsStr::from_bytes(cstr.to_bytes());
+        let path : PathBuf = OsString::from(os_str).into();
+        Some(path)
+      }
+    else {
+      None
+    }
+  }
+
 pub fn get_uptime() -> Option<String> {
     let meminfo = fs::read_to_string("/proc/uptime").ok()?;
     let meminfo: &str = meminfo.split(' ').next()?;

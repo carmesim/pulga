@@ -3,6 +3,7 @@ mod logos;
 mod newfetch;
 
 use crate::newfetch::UserData;
+use crate::newfetch::get_shell;
 
 use indoc::indoc;
 use sugars::{boxed, hmap};
@@ -102,6 +103,8 @@ fn main() {
 
     let logo = logos::choose_logo(logos::Logo::Manjaro);
     // println!("{}", logo);
+
+    dbg!(get_shell());
 
     show(text, logo);
 }
