@@ -85,7 +85,7 @@ fn main() {
         },
         "username", data.username,
         "hostname", data.hostname,
-        "device name", data.devicename,
+        "architecture", data.arch,
         "uptime", newfetch::get_uptime().unwrap(),
         "home dir.", data.hmd,
         "shell", data.shell,

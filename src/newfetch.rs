@@ -18,7 +18,7 @@ use std::{
 pub struct UserData {
     pub username: String,     // User's username
     pub hostname: String,     // User's hostname
-    pub devicename: String,   // User's device name
+    pub arch: String,         // Microprocessor architecture
     pub cwd: String,          // User's current working directory. TODO: unneeded?
     pub hmd: String,          // User's home directory
     pub shell: String,        // User's standard shell
@@ -136,7 +136,7 @@ pub fn get_user_data() -> UserData {
     UserData {
         username,
         hostname,
-        devicename: whoami::devicename(),
+        arch: get_arch(),
         cwd,
         hmd: home_dir,
         shell,
