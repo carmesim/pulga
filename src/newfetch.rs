@@ -171,6 +171,35 @@ pub fn get_hostname() -> Option<String> {
     }
 }
 
+#[allow(unreachable_code)]
+pub fn get_arch() -> String {
+    #[cfg(target_arch = "x86")]
+    return "x86".to_string();
+
+    #[cfg(target_arch = "x86_64")]
+    return "x86-64".to_string();
+
+    #[cfg(target_arch = "arm")]
+    return "ARM".to_string();
+
+    #[cfg(target_arch = "aarch64")]
+    return "ARM64".to_string();
+
+    #[cfg(target_arch = "mips")]
+    return "MIPS".to_string();
+
+    #[cfg(target_arch = "mips64")]
+    return "MIPS64".to_string();
+
+    #[cfg(target_arch = "powerpc")]
+    return "PowerPC".to_string();
+
+    #[cfg(target_arch = "powerpc64")]
+    return "PowerPC 64".to_string();
+    
+    return "Unknown".to_string();
+}
+
 pub fn get_distro() -> Option<String> {
     let program = std::fs::read_to_string("/etc/os-release");
     if program.is_err() {
