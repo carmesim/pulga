@@ -1,6 +1,6 @@
 use crate::error::Error;
 
-use libc::{getpwuid_r, getuid, passwd, gethostname, c_char, sysconf, _SC_HOST_NAME_MAX};
+use libc::{getpwuid_r, getuid, passwd, gethostname, c_char, sysconf, _SC_HOST_NAME_MAX, CPU_SETSIZE, CPU_ISSET};
 
 use std::{
     cmp,
@@ -85,6 +85,22 @@ pub fn mem_info() -> Result<MemInfo, Error> {
         swap_total: *swap_total,
         swap_free: *swap_free,
     })
+}
+
+/// The number of threads the CPU can handle at any given time
+fn get_logical_cpus() -> usize {
+    let mut set: libc::cpu_set_t = unsafe { mem::zeroed() };
+    if unsafe { libc::sched_getaffinity(0, mem::size_of::<libc::cpu_set_t>(), &mut set) } == 0 {
+        let mut count: u32 = 0;
+        for i in 0..CPU_SETSIZE as usize {
+            if unsafe { CPU_ISSET(i, &set) } {
+                count += 1
+            }
+        }
+        return count as usize;
+    } 
+    let cpus = unsafe { sysconf(libc::_SC_NPROCESSORS_ONLN) };
+    if cpus < 1 { 1 } else { cpus as usize }
 }
 
 /// pretty_bytes gets a value in bytes and returns a human-readable form of it
@@ -250,27 +266,6 @@ pub fn get_username_home_dir_and_shell () -> Option<(String, String, String)> {
 
         
         Some((username, home_dir, shell))
-      }
-    else {
-      None
-    }
-}
-
-pub fn get_shell()->Option<PathBuf> {
-    let mut buf = Vec::with_capacity(2048);
-    let mut result = ptr::null_mut();
-  
-    let mut passwd : passwd = unsafe{mem::zeroed()};
-  
-    let getpwuid_r_code =
-        unsafe{getpwuid_r(getuid(), &mut passwd, buf.as_mut_ptr(), buf.capacity(),
-                          &mut result, )};
-  
-    if getpwuid_r_code == 0 && !result.is_null() {
-        let cstr = unsafe{CStr::from_ptr(passwd.pw_shell)};
-        let os_str = OsStr::from_bytes(cstr.to_bytes());
-        let path : PathBuf = OsString::from(os_str).into();
-        Some(path)
       }
     else {
       None
