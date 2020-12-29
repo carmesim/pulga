@@ -64,7 +64,7 @@ fn show(text: String, logo: &str) {
     print!("{}", Up(14));
 
     for (_, line) in lines.iter().enumerate() {
-        print!("{} {}{}{}", Right(31), line, Left(1000), Down(1));
+        print!("{} {}{}{}", Right(32), line, Left(1000), Down(1));
     }
     print!("{}", Down(18));
 }
@@ -75,7 +75,6 @@ fn main() {
     #[rustfmt::skip]
     let text = format!(indoc! {
         "{c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
@@ -101,7 +100,7 @@ fn main() {
 
     // println!("{}", text.len());
 
-    let logo = logos::choose_logo(logos::Logo::Debian);
+    let logo = logos::choose_logo(logos::Logo::Manjaro);
     // println!("{}", logo);
 
     show(text, logo);
