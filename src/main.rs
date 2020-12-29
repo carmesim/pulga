@@ -91,7 +91,7 @@ fn main() {
         "home", data.hmd,
         "shell", data.shell,
         "distro", data.distro,
-        "desktop env.", data.desk_env,
+        // "desktop env.", data.desk_env,
         "memory usage", data.used_memory, data.total_memory,
         c = Fg(LightCyan),
         w = Fg(LightBlack),

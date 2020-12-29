@@ -12,13 +12,13 @@ use std::{cmp, collections::HashMap, env, ffi::CStr, fs, mem, ptr};
 
 #[derive(Debug)]
 pub struct UserData {
-    pub username: String,     // User's username
-    pub hostname: String,     // User's hostname
-    pub cpu_info: String,     // Some CPU info
-    pub cwd: String,          // User's current working directory. TODO: unneeded?
-    pub hmd: String,          // User's home directory
-    pub shell: String,        // User's standard shell
-    pub desk_env: String,     // User's desktop environment
+    pub username: String, // User's username
+    pub hostname: String, // User's hostname
+    pub cpu_info: String, // Some CPU info
+    pub cwd: String,      // User's current working directory. TODO: unneeded?
+    pub hmd: String,      // User's home directory
+    pub shell: String,    // User's standard shell
+    // pub desk_env: String,     // User's desktop environment
     pub distro: String,       // User's distro
     pub total_memory: String, // Total memory in human-readable form
     pub used_memory: String,  // Used memory in human-readable form
@@ -168,7 +168,7 @@ pub fn get_user_data() -> UserData {
         cwd,
         hmd: home_dir,
         shell,
-        desk_env: whoami::desktop_env().to_string(),
+        // desk_env: whoami::desktop_env().to_string(),
         distro,
         total_memory: pretty_bytes((mem_info.total * 1024) as f64),
         used_memory: pretty_bytes(((mem_info.total - mem_info.avail) * 1024) as f64),

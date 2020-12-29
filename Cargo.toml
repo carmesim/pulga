@@ -10,5 +10,4 @@ edition = "2018"
 libc = "0.2"
 indoc = "1.0"
 termion = "1.5"
-whoami = { path = "whoami" }
-sugars = "*"
+sugars = "3.0"
