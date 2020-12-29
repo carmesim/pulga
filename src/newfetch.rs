@@ -231,10 +231,10 @@ pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
     };
 
     if getpwuid_r_code == 0 && !result.is_null() {
-        let username = char_ptr_to_string(passwd.pw_name);
-        let home_dir = char_ptr_to_string(passwd.pw_dir);
+        let username = unsafe { char_ptr_to_string(passwd.pw_name) };
+        let home_dir = unsafe { char_ptr_to_string(passwd.pw_dir) };
         // From "/usr/bin/shell" to just "shell"
-        let shell = char_ptr_to_string(passwd.pw_shell)
+        let shell = unsafe { char_ptr_to_string(passwd.pw_shell) }
             .rsplit(|a| a == '/')
             .next()
             .unwrap()

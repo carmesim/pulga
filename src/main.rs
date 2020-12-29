@@ -104,7 +104,7 @@ fn main() {
 
     // println!("{}", text.len());
 
-    let logo = logos::choose_logo(logos::Logo::Manjaro);
+    let logo = logos::choose_logo(logos::Logo::Debian);
     // println!("{}", logo);
 
     show(text, logo);
