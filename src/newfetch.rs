@@ -119,7 +119,7 @@ pub fn get_cpu_max_freq() -> String {
 
     let max_freq_ghz = (max_freq_hz as f64) / 1000000.0;
 
-    format!("{} GHz", max_freq_ghz)
+    format!("{:.2} GHz", max_freq_ghz)
 }
 
 /// pretty_bytes gets a value in bytes and returns a human-readable form of it
