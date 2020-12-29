@@ -2,6 +2,7 @@ mod error;
 mod logos;
 mod newfetch;
 mod util;
+mod uname;
 
 use crate::newfetch::UserData;
 

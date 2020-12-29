@@ -1,6 +1,6 @@
 use crate::{
-    error::Error,
     util::{char_ptr_to_string, os_str_to_string},
+    uname::UnameData,
 };
 
 use libc::{
@@ -151,6 +151,7 @@ pub fn get_user_data() -> UserData {
     // Current working directory
     let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
 
+    let uname_data = UnameData::new();
     
     let mem_info = mem_info().unwrap();
 
@@ -164,7 +165,7 @@ pub fn get_user_data() -> UserData {
             "{}x {} ({})",
             get_logical_cpus(),
             get_cpu_max_freq(),
-            get_arch()
+            uname_data.machine
         ),
         cwd,
         hmd: home_dir,
