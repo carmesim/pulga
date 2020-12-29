@@ -1,6 +1,9 @@
 use crate::error::Error;
 
-use libc::{getpwuid_r, getuid, passwd, gethostname, c_char, sysconf, _SC_HOST_NAME_MAX, CPU_SETSIZE, CPU_ISSET};
+use libc::{
+    c_char, gethostname, getpwuid_r, getuid, passwd, sysconf, CPU_ISSET, CPU_SETSIZE,
+    _SC_HOST_NAME_MAX,
+};
 
 use std::{
     cmp,
@@ -8,7 +11,6 @@ use std::{
     env,
     ffi::{CStr, OsStr, OsString},
     fs, mem,
-    str::from_utf8,
     os::unix::ffi::OsStrExt,
     path::PathBuf,
     ptr,
@@ -89,30 +91,36 @@ pub fn mem_info() -> Result<MemInfo, Error> {
 
 /// The number of threads the CPU can handle at any given time
 fn get_logical_cpus() -> usize {
-    let mut set: libc::cpu_set_t = unsafe { mem::zeroed() };
-    if unsafe { libc::sched_getaffinity(0, mem::size_of::<libc::cpu_set_t>(), &mut set) } == 0 {
-        let mut count: u32 = 0;
+    use libc::{cpu_set_t, sched_getaffinity, _SC_NPROCESSORS_ONLN};
+
+    let mut set: cpu_set_t = unsafe { mem::zeroed() };
+    let code = unsafe { sched_getaffinity(0, mem::size_of::<cpu_set_t>(), &mut set) };
+
+    // If sched_getaffinity returns 0 (succeeded)
+    if code == 0 {
+        let mut count = 0;
         for i in 0..CPU_SETSIZE as usize {
             if unsafe { CPU_ISSET(i, &set) } {
                 count += 1
             }
         }
-        return count as usize;
-    } 
-    let cpus = unsafe { sysconf(libc::_SC_NPROCESSORS_ONLN) };
-    if cpus < 1 { 1 } else { cpus as usize }
+        count
+    } else {
+        let cpus = unsafe { sysconf(_SC_NPROCESSORS_ONLN) };
+        cmp::max(1, cpus) as usize
+    }
 }
 
 pub fn get_cpu_max_freq() -> String {
-    let scaling_max_freq_str = match std::fs::read_to_string("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq")
-    {
-        Ok(freq) => freq,
-        Err(_) => return "Unknown Frequency".to_string()
-    };
+    let scaling_max_freq_str =
+        match std::fs::read_to_string("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq") {
+            Ok(freq) => freq,
+            Err(_) => return "Unknown Frequency".to_string(),
+        };
 
     let max_freq_hz: usize = match scaling_max_freq_str.trim().parse() {
         Ok(freq) => freq,
-        Err(_)         => return "Unknown Frequency".to_string()
+        Err(_) => return "Unknown Frequency".to_string(),
     };
 
     let max_freq_ghz = (max_freq_hz as f64) / 1000000.0;
@@ -139,12 +147,11 @@ fn pretty_bytes(num: f64) -> String {
 
 /// get_user_data returns a new UserData structure
 pub fn get_user_data() -> UserData {
-
-    let res = get_username_home_dir_and_shell();
-    let (username, home_dir, shell) = if res.is_some() {
-        res.unwrap()
+    let (username, home_dir, shell) = if let Some(res) = get_username_home_dir_and_shell() {
+        res
     } else {
-        ("Unknown".to_string(), "Unknown".to_string(), "Unknown".to_string())
+        let unknown = "Unknown".to_string();
+        (unknown.clone(), unknown.clone(), unknown)
     };
 
     // Current working directory
@@ -152,24 +159,18 @@ pub fn get_user_data() -> UserData {
 
     let mem_info = mem_info().unwrap();
 
-    let hostname_res = get_hostname();
-    let hostname = if hostname_res.is_some() {
-        hostname_res.unwrap()
-    } else {
-        "Unknown".to_string()
-    };
-    
-    let distro = get_distro();
-    let distro = if distro.is_some() {
-        distro.unwrap()
-    } else {
-        "Linux".to_string()
-    };
+    let hostname = get_hostname().unwrap_or("Unknown".to_string());
+    let distro = get_distro().unwrap_or("Linux".to_string());
 
     UserData {
         username,
         hostname,
-        cpu_info: format!("{}x{} ({})", get_logical_cpus(), get_cpu_max_freq(), get_arch()),
+        cpu_info: format!(
+            "{}x{} ({})",
+            get_logical_cpus(),
+            get_cpu_max_freq(),
+            get_arch()
+        ),
         cwd,
         hmd: home_dir,
         shell,
@@ -181,13 +182,9 @@ pub fn get_user_data() -> UserData {
 }
 
 pub fn get_hostname() -> Option<String> {
-    let hostname_max = unsafe { 
-        sysconf(_SC_HOST_NAME_MAX) 
-    } as usize;
+    let hostname_max = unsafe { sysconf(_SC_HOST_NAME_MAX) } as usize;
     let mut buffer = vec![0 as u8; hostname_max + 1]; // +1 to account for the NUL character
-    let ret = unsafe { 
-        gethostname(buffer.as_mut_ptr() as *mut c_char, buffer.len()) 
-    };
+    let ret = unsafe { gethostname(buffer.as_mut_ptr() as *mut c_char, buffer.len()) };
     if ret != 0 {
         return None;
     }
@@ -196,12 +193,8 @@ pub fn get_hostname() -> Option<String> {
         .position(|&b| b == 0)
         .unwrap_or_else(|| buffer.len());
     buffer.resize(end, 0);
-    let hostname = from_utf8(&buffer);
-    if hostname.is_err() {
-        None
-    } else {
-        Some(hostname.unwrap().to_string())
-    }
+
+    String::from_utf8(buffer).ok()
 }
 
 #[allow(unreachable_code)]
@@ -229,7 +222,7 @@ pub fn get_arch() -> String {
 
     #[cfg(target_arch = "powerpc64")]
     return "PowerPC 64".to_string();
-    
+
     return "Unknown".to_string();
 }
 
@@ -238,7 +231,7 @@ pub fn get_distro() -> Option<String> {
     if program.is_err() {
         return None;
     }
-    let program  = program.unwrap().into_bytes();
+    let program = program.unwrap().into_bytes();
 
     let distro = String::from_utf8_lossy(&program);
 
@@ -247,45 +240,48 @@ pub fn get_distro() -> Option<String> {
 
         match j.next()? {
             "PRETTY_NAME" => return Some(j.next()?.trim_matches('"').to_string()),
-            _ => {}
+            _ => {},
         }
     }
 
     Some("Linux".to_string())
 }
 
-pub fn get_username_home_dir_and_shell () -> Option<(String, String, String)> {
+pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
     let mut buf = Vec::with_capacity(2048);
     let mut result = ptr::null_mut();
-  
-    let mut passwd : passwd = unsafe{mem::zeroed()};
-  
-    let getpwuid_r_code =
-        unsafe{getpwuid_r(getuid(), &mut passwd, buf.as_mut_ptr(), buf.capacity(),
-                          &mut result, )};
-  
-    if getpwuid_r_code == 0 && !result.is_null() {
 
-        let username_cstr = unsafe{CStr::from_ptr(passwd.pw_name)};
+    let mut passwd: passwd = unsafe { mem::zeroed() };
+
+    let getpwuid_r_code = unsafe {
+        getpwuid_r(
+            getuid(),
+            &mut passwd,
+            buf.as_mut_ptr(),
+            buf.capacity(),
+            &mut result,
+        )
+    };
+
+    if getpwuid_r_code == 0 && !result.is_null() {
+        let username_cstr = unsafe { CStr::from_ptr(passwd.pw_name) };
         let username_os_str = OsStr::from_bytes(username_cstr.to_bytes());
-        let username : PathBuf = OsString::from(username_os_str).into();
+        let username: PathBuf = OsString::from(username_os_str).into();
         let username = username.to_string_lossy().into();
 
-        let hd_cstr = unsafe{CStr::from_ptr(passwd.pw_dir)};
+        let hd_cstr = unsafe { CStr::from_ptr(passwd.pw_dir) };
         let hd_os_str = OsStr::from_bytes(hd_cstr.to_bytes());
-        let hd_path : PathBuf = OsString::from(hd_os_str).into();
+        let hd_path: PathBuf = OsString::from(hd_os_str).into();
         let home_dir = hd_path.to_string_lossy().into();
-        
-        let sh_cstr = unsafe{CStr::from_ptr(passwd.pw_shell)};
+
+        let sh_cstr = unsafe { CStr::from_ptr(passwd.pw_shell) };
         let sh_os_str = OsStr::from_bytes(sh_cstr.to_bytes());
-        let sh_path : PathBuf = OsString::from(sh_os_str).into();
+        let sh_path: PathBuf = OsString::from(sh_os_str).into();
         let shell = sh_path.to_string_lossy().into();
 
-        
         Some((username, home_dir, shell))
-      }
-    else {
-      None
+    } else {
+        None
     }
 }
 
