@@ -160,7 +160,7 @@ pub fn get_user_data() -> UserData {
         username,
         hostname,
         cpu_info: format!(
-            "{}x{} ({})",
+            "{}x {} ({})",
             get_logical_cpus(),
             get_cpu_max_freq(),
             get_arch()
