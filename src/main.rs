@@ -83,6 +83,7 @@ fn main() {
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R} / {r}{}{R}"
         },
         "username", data.username,
@@ -92,6 +93,7 @@ fn main() {
         "home", data.hmd,
         "shell", data.shell,
         "distro", data.distro,
+        "kernel", data.kernel_version,
         "desktop env.", data.desk_env,
         "memory usage", data.used_memory, data.total_memory,
         c = Fg(LightCyan),

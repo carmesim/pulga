@@ -12,16 +12,17 @@ use std::{cmp, collections::HashMap, env, fs, mem, ptr};
 
 #[derive(Debug)]
 pub struct UserData {
-    pub username: String,     // User's username
-    pub hostname: String,     // User's hostname
-    pub cpu_info: String,     // Some CPU info
-    pub cwd: String,          // User's current working directory. TODO: unneeded?
-    pub hmd: String,          // User's home directory
-    pub shell: String,        // User's standard shell
-    pub desk_env: String,     // User's desktop environment
-    pub distro: String,       // User's distro
-    pub total_memory: String, // Total memory in human-readable form
-    pub used_memory: String,  // Used memory in human-readable form
+    pub username: String,       // User's username
+    pub hostname: String,       // User's hostname
+    pub cpu_info: String,       // Some CPU info
+    pub cwd: String,            // User's current working directory. TODO: unneeded?
+    pub hmd: String,            // User's home directory
+    pub shell: String,          // User's standard shell
+    pub desk_env: String,       // User's desktop environment
+    pub distro: String,         // User's distro
+    pub kernel_version: String, // User's current kernel version
+    pub total_memory: String,   // Total memory in human-readable form
+    pub used_memory: String,    // Used memory in human-readable form
 }
 
 #[repr(C)]
@@ -170,6 +171,11 @@ pub fn get_user_data() -> UserData {
         cwd,
         hmd: home_dir,
         shell,
+        kernel_version: format!(
+            "{} {}", 
+            uname_data.system_name, 
+            uname_data.release
+        ),
         desk_env: get_desktop_environment(),
         distro,
         total_memory: pretty_bytes((mem_info.total * 1024) as f64),
@@ -193,35 +199,6 @@ pub fn get_hostname() -> Option<String> {
     } else {
         None
     }
-}
-
-#[allow(unreachable_code)]
-pub fn get_arch() -> String {
-    #[cfg(target_arch = "x86")]
-    return "x86".to_string();
-
-    #[cfg(target_arch = "x86_64")]
-    return "x86-64".to_string();
-
-    #[cfg(target_arch = "arm")]
-    return "ARM".to_string();
-
-    #[cfg(target_arch = "aarch64")]
-    return "ARM64".to_string();
-
-    #[cfg(target_arch = "mips")]
-    return "MIPS".to_string();
-
-    #[cfg(target_arch = "mips64")]
-    return "MIPS64".to_string();
-
-    #[cfg(target_arch = "powerpc")]
-    return "PowerPC".to_string();
-
-    #[cfg(target_arch = "powerpc64")]
-    return "PowerPC 64".to_string();
-
-    "Unknown".to_string()
 }
 
 pub fn get_distro() -> Option<String> {

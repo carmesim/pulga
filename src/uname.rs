@@ -1,4 +1,4 @@
-use libc::{c_char, uname, utsname};
+use libc::{uname, utsname};
 use std::mem;
 use std::ffi::CStr;
 
@@ -13,8 +13,7 @@ pub struct UnameData {
 impl UnameData {
     pub fn new () -> UnameData 
     {
-        let mut uts_struct = unsafe { mem::zeroed() };
-        // utsname is a struct defined in <sys/utsname.h>
+        let mut uts_struct: utsname = unsafe { mem::zeroed() };
 
         let ret_val = unsafe { uname(& mut uts_struct) };
 
@@ -23,11 +22,11 @@ impl UnameData {
             // TODO: fallback? panic?
         };
 
-        let sysname_cstr = unsafe { CStr::from_ptr(uts_struct.sysname[..].as_ptr())  };
-        let nodename_cstr= unsafe { CStr::from_ptr(uts_struct.nodename[..].as_ptr()) };
-        let release_cstr = unsafe { CStr::from_ptr(uts_struct.release[..].as_ptr())  };
-        let version_cstr = unsafe { CStr::from_ptr(uts_struct.version[..].as_ptr())  };
-        let machine_cstr = unsafe { CStr::from_ptr(uts_struct.machine[..].as_ptr())  };
+        let sysname_cstr = unsafe { CStr::from_ptr(uts_struct.sysname.as_ptr())  };
+        let nodename_cstr= unsafe { CStr::from_ptr(uts_struct.nodename.as_ptr()) };
+        let release_cstr = unsafe { CStr::from_ptr(uts_struct.release.as_ptr())  };
+        let version_cstr = unsafe { CStr::from_ptr(uts_struct.version.as_ptr())  };
+        let machine_cstr = unsafe { CStr::from_ptr(uts_struct.machine.as_ptr())  };
 
         UnameData 
         {
