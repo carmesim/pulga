@@ -8,7 +8,7 @@
 
 ## Performance
 
-Different than similar tools, such as [Neofetch](https://github.com/dylanaraps/neofetch) and [pfetch](https://github.com/dylanaraps/pfetch), written in scripting languages, Pulga is written in Rust, focusing on obtaining all of its data solely using the standard libraries of Rust and C, alongside system files. Pulga currently runs in under 10 milliseconds even on low-end hardware.
+Different than similar tools, such as [Neofetch](https://github.com/dylanaraps/neofetch) and [pfetch](https://github.com/dylanaraps/pfetch), which are written in scripting languages, Pulga is written in Rust, focusing on obtaining all of its data solely using the standard libraries of Rust and C, alongside system files. Pulga currently runs in under 10 milliseconds even on low-end hardware.
 
 ### Quick benchmark
 
@@ -22,7 +22,7 @@ Pulga ([as of this commit](https://github.com/carmesim/pulga/commit/b82da05bf886
 
 Neofetch ([as of this commit](https://github.com/dylanaraps/neofetch/commit/6dd85d67fc0d4ede9248f2df31b2cd554cca6c2f)) had a mean runtime of 1.281 s ± 0.064 s.
 
-That is, 
+Overall:
 ```
   './pulga' ran
   213.03 ± 76.66 times faster than './neofetch'
