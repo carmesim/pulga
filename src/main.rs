@@ -54,8 +54,8 @@ fn show(text: String, logo: &str) {
     }
 
     // Show the remaining stuff
-    for i in i..logo.len() {
-        print!("{}", logo[i]);
+    for remaining in logo.iter().skip(i) {
+        print!("{}", remaining);
     }
     println!();
 
@@ -101,7 +101,7 @@ fn main() {
     // println!("{}", text.len());
 
     let logo = logos::choose_logo(logos::Logo::Debian);
-    // println!("{}", logo);    
+    // println!("{}", logo);
 
     show(text, logo);
 }

@@ -2,7 +2,6 @@ use crate::{DesktopEnv, Platform};
 
 use std::{
     ffi::{c_void, OsString},
-    mem,
     os::unix::ffi::OsStringExt,
 };
 
@@ -125,7 +124,7 @@ fn fancy_fallback(result: Result<&str, String>) -> String {
             '.' | '-' | '_' => {
                 new.push(' ');
                 cap = true;
-            }
+            },
             a => {
                 if cap {
                     cap = false;
@@ -135,7 +134,7 @@ fn fancy_fallback(result: Result<&str, String>) -> String {
                 } else {
                     new.push(a);
                 }
-            }
+            },
         }
     }
     new
@@ -215,8 +214,8 @@ fn distro_xml(data: String) -> Option<String> {
                             if user_visible_version.is_none() {
                                 set_user_visible_version = true
                             }
-                        }
-                        _ => {}
+                        },
+                        _ => {},
                     }
                 } else if line.starts_with("<string>") {
                     if set_product_name {
@@ -285,7 +284,7 @@ pub fn distro() -> Option<String> {
         match j.next()? {
             "PRETTY_NAME" => return Some(j.next()?.trim_matches('"').to_string()),
             "NAME" => fallback = Some(j.next()?.trim_matches('"').to_string()),
-            _ => {}
+            _ => {},
         }
     }
 
@@ -324,7 +323,7 @@ pub fn desktop_env() -> DesktopEnv {
             } else {
                 DesktopEnv::Unknown(env_orig)
             }
-        }
+        },
         // TODO: Other Linux Desktop Environments
         None => DesktopEnv::Unknown("Unknown".to_string()),
     }

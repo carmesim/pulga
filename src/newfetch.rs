@@ -159,8 +159,8 @@ pub fn get_user_data() -> UserData {
 
     let mem_info = mem_info().unwrap();
 
-    let hostname = get_hostname().unwrap_or("Unknown".to_string());
-    let distro = get_distro().unwrap_or("Linux".to_string());
+    let hostname = get_hostname().unwrap_or_else(|| "Unknown".to_string());
+    let distro = get_distro().unwrap_or_else(|| "Linux".to_string());
 
     UserData {
         username,
@@ -183,7 +183,7 @@ pub fn get_user_data() -> UserData {
 
 pub fn get_hostname() -> Option<String> {
     let hostname_max = unsafe { sysconf(_SC_HOST_NAME_MAX) } as usize;
-    let mut buffer = vec![0 as u8; hostname_max + 1]; // +1 to account for the NUL character
+    let mut buffer = vec![0_u8; hostname_max + 1]; // +1 to account for the NUL character
     let ret = unsafe { gethostname(buffer.as_mut_ptr() as *mut c_char, buffer.len()) };
     if ret != 0 {
         return None;
@@ -223,7 +223,7 @@ pub fn get_arch() -> String {
     #[cfg(target_arch = "powerpc64")]
     return "PowerPC 64".to_string();
 
-    return "Unknown".to_string();
+    "Unknown".to_string()
 }
 
 pub fn get_distro() -> Option<String> {
@@ -238,9 +238,8 @@ pub fn get_distro() -> Option<String> {
     for i in distro.split('\n') {
         let mut j = i.split('=');
 
-        match j.next()? {
-            "PRETTY_NAME" => return Some(j.next()?.trim_matches('"').to_string()),
-            _ => {},
+        if let "PRETTY_NAME" = j.next()? {
+            return Some(j.next()?.trim_matches('"').to_string());
         }
     }
 

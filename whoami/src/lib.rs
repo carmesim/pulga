@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //! Crate for getting the user's username, realname and environment.
 //!
 //! ## Getting Started
@@ -8,36 +10,36 @@
 //! which return enums).  The following example shows how to use all of the
 //! functions (except those that return [`OsString`](std::ffi::OsString)):
 //!
-//! ```rust
+//! ```no_run
 //! fn main() {
-//!     println!(
-//!         "User→Name      whoami::realname():    {}",
-//!         whoami::realname()
-//!     );
-//!     println!(
-//!         "User→Username  whoami::username():    {}",
-//!         whoami::username()
-//!     );
-//!     println!(
-//!         "Host→Name      whoami::devicename():  {}",
-//!         whoami::devicename()
-//!     );
-//!     println!(
-//!         "Host→Hostname  whoami::hostname():    {}",
-//!         whoami::hostname()
-//!     );
-//!     println!(
-//!         "Platform       whoami::platform():    {}",
-//!         whoami::platform()
-//!     );
-//!     println!(
-//!         "OS Distro      whoami::distro():      {}",
-//!         whoami::distro()
-//!     );
-//!     println!(
-//!         "Desktop Env.   whoami::desktop_env(): {}",
-//!         whoami::desktop_env()
-//!     );
+//!     // println!(
+//!     //     "User→Name      whoami::realname():    {}",
+//!     //     whoami::realname()
+//!     // );
+//!     // println!(
+//!     //     "User→Username  whoami::username():    {}",
+//!     //     whoami::username()
+//!     // );
+//!     // println!(
+//!     //     "Host→Name      whoami::devicename():  {}",
+//!     //     whoami::devicename()
+//!     // );
+//!     // println!(
+//!     //     "Host→Hostname  whoami::hostname():    {}",
+//!     //     whoami::hostname()
+//!     // );
+//!     // println!(
+//!     //     "Platform       whoami::platform():    {}",
+//!     //     whoami::platform()
+//!     // );
+//!     // println!(
+//!     //     "OS Distro      whoami::distro():      {}",
+//!     //     whoami::distro()
+//!     // );
+//!     // println!(
+//!     //     "Desktop Env.   whoami::desktop_env(): {}",
+//!     //     whoami::desktop_env()
+//!     // );
 //! }
 //! ```
 
