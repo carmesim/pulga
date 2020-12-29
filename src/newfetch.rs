@@ -42,8 +42,8 @@ pub struct MemInfo {
 
 // This function was adapted from sys-info by Siyu Wang (MIT-licensed)
 /// Returns current memory utilization info
-pub fn mem_info() -> Result<MemInfo, Error> {
-    let s = fs::read_to_string("/proc/meminfo")?;
+pub fn mem_info() -> Option<MemInfo> {
+    let s = fs::read_to_string("/proc/meminfo").ok()?;
     let mut mem_info_map = HashMap::new();
 
     for line in s.lines() {
@@ -51,15 +51,15 @@ pub fn mem_info() -> Result<MemInfo, Error> {
         let label = split_line.next();
         let value = split_line.next();
         if value.is_some() && label.is_some() {
-            let label = label.unwrap().split(':').next().ok_or(Error::Unknown)?;
-            let value = value.unwrap().parse::<u64>().ok().ok_or(Error::Unknown)?;
+            let label = label.unwrap().split(':').next()?;
+            let value = value.unwrap().parse::<u64>().ok()?;
             mem_info_map.insert(label, value);
         }
     }
-    let total = mem_info_map.get("MemTotal").ok_or(Error::Unknown)?;
-    let free = mem_info_map.get("MemFree").ok_or(Error::Unknown)?;
-    let buffers = mem_info_map.get("Buffers").ok_or(Error::Unknown)?;
-    let cached = mem_info_map.get("Cached").ok_or(Error::Unknown)?;
+    let total = mem_info_map.get("MemTotal")?;
+    let free = mem_info_map.get("MemFree")?;
+    let buffers = mem_info_map.get("Buffers")?;
+    let cached = mem_info_map.get("Cached")?;
     let avail = mem_info_map
         .get("MemAvailable")
         .copied()
@@ -68,11 +68,11 @@ pub fn mem_info() -> Result<MemInfo, Error> {
             let shmem = mem_info_map.get("Shmem")?;
             Some(free + buffers + cached + sreclaimable - shmem)
         })
-        .ok_or(Error::Unknown)?;
-    let swap_total = mem_info_map.get("SwapTotal").ok_or(Error::Unknown)?;
-    let swap_free = mem_info_map.get("SwapFree").ok_or(Error::Unknown)?;
+        ?;
+    let swap_total = mem_info_map.get("SwapTotal")?;
+    let swap_free = mem_info_map.get("SwapFree")?;
 
-    Ok(MemInfo {
+    Some(MemInfo {
         total: *total,
         free: *free,
         avail,
@@ -151,6 +151,7 @@ pub fn get_user_data() -> UserData {
     // Current working directory
     let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
 
+    
     let mem_info = mem_info().unwrap();
 
     let hostname = get_hostname().unwrap_or_else(|| "Unknown".to_string());
