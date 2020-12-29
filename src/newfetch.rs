@@ -18,7 +18,7 @@ use std::{
 pub struct UserData {
     pub username: String,     // User's username
     pub hostname: String,     // User's hostname
-    pub arch: String,         // Microprocessor architecture
+    pub cpu_info: String,     // Some CPU info
     pub cwd: String,          // User's current working directory. TODO: unneeded?
     pub hmd: String,          // User's home directory
     pub shell: String,        // User's standard shell
@@ -103,6 +103,23 @@ fn get_logical_cpus() -> usize {
     if cpus < 1 { 1 } else { cpus as usize }
 }
 
+pub fn get_cpu_max_freq() -> String {
+    let scaling_max_freq_str = match std::fs::read_to_string("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq")
+    {
+        Ok(freq) => freq,
+        Err(_) => return "Unknown Frequency".to_string()
+    };
+
+    let max_freq_hz: usize = match scaling_max_freq_str.trim().parse() {
+        Ok(freq) => freq,
+        Err(_)         => return "Unknown Frequency".to_string()
+    };
+
+    let max_freq_ghz = (max_freq_hz as f64) / 1000000.0;
+
+    format!("{} GHz", max_freq_ghz)
+}
+
 /// pretty_bytes gets a value in bytes and returns a human-readable form of it
 fn pretty_bytes(num: f64) -> String {
     let negative = if num < 0.0 { "-" } else { "" };
@@ -152,7 +169,7 @@ pub fn get_user_data() -> UserData {
     UserData {
         username,
         hostname,
-        arch: get_arch(),
+        cpu_info: format!("{}x{} ({})", get_logical_cpus(), get_cpu_max_freq(), get_arch()),
         cwd,
         hmd: home_dir,
         shell,
