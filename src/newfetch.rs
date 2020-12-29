@@ -8,17 +8,17 @@ use libc::{
     _SC_HOST_NAME_MAX,
 };
 
-use std::{cmp, collections::HashMap, env, ffi::CStr, fs, mem, ptr};
+use std::{cmp, collections::HashMap, env, fs, mem, ptr};
 
 #[derive(Debug)]
 pub struct UserData {
-    pub username: String, // User's username
-    pub hostname: String, // User's hostname
-    pub cpu_info: String, // Some CPU info
-    pub cwd: String,      // User's current working directory. TODO: unneeded?
-    pub hmd: String,      // User's home directory
-    pub shell: String,    // User's standard shell
-    // pub desk_env: String,     // User's desktop environment
+    pub username: String,     // User's username
+    pub hostname: String,     // User's hostname
+    pub cpu_info: String,     // Some CPU info
+    pub cwd: String,          // User's current working directory. TODO: unneeded?
+    pub hmd: String,          // User's home directory
+    pub shell: String,        // User's standard shell
+    pub desk_env: String,     // User's desktop environment
     pub distro: String,       // User's distro
     pub total_memory: String, // Total memory in human-readable form
     pub used_memory: String,  // Used memory in human-readable form
@@ -168,7 +168,7 @@ pub fn get_user_data() -> UserData {
         cwd,
         hmd: home_dir,
         shell,
-        // desk_env: whoami::desktop_env().to_string(),
+        desk_env: get_desktop_environment(),
         distro,
         total_memory: pretty_bytes((mem_info.total * 1024) as f64),
         used_memory: pretty_bytes(((mem_info.total - mem_info.avail) * 1024) as f64),
@@ -181,8 +181,13 @@ pub fn get_hostname() -> Option<String> {
     let ret = unsafe { gethostname(buffer.as_mut_ptr() as *mut c_char, buffer.len()) };
 
     if ret == 0 {
-        let cstr = CStr::from_bytes_with_nul(&buffer).ok()?;
-        Some(String::from_utf8_lossy(cstr.to_bytes()).into())
+        let end = buffer
+            .iter()
+            .position(|&b| b == 0)
+            .unwrap_or_else(|| buffer.len());
+
+        buffer.resize(end, 0);
+        String::from_utf8(buffer).ok()
     } else {
         None
     }
@@ -306,4 +311,30 @@ pub fn get_uptime() -> Option<String> {
     }
 
     Some(uptime)
+}
+
+pub fn get_desktop_environment() -> String {
+    std::env::var_os("DESKTOP_SESSION")
+        .map(|env| env.to_string_lossy().to_string())
+        .map(|env| {
+            let env = env.to_lowercase();
+
+            if env.contains("gnome") {
+                "Gnome"
+            } else if env.contains("lxde") {
+                "LXDE"
+            } else if env.contains("openbox") {
+                "OpenBox"
+            } else if env.contains("i3") {
+                "i3"
+            } else if env.contains("ubuntu") {
+                "Ubuntu"
+            } else if env.contains("plasma5") {
+                "KDE"
+            } else {
+                env.as_ref()
+            }
+            .to_string()
+        })
+        .unwrap_or_else(|| String::from("Unknown"))
 }
