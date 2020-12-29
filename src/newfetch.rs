@@ -1,20 +1,14 @@
-use crate::error::Error;
+use crate::{
+    error::Error,
+    util::{char_ptr_to_string, os_str_to_string},
+};
 
 use libc::{
     c_char, gethostname, getpwuid_r, getuid, passwd, sysconf, CPU_ISSET, CPU_SETSIZE,
     _SC_HOST_NAME_MAX,
 };
 
-use std::{
-    cmp,
-    collections::HashMap,
-    env,
-    ffi::{CStr, OsStr, OsString},
-    fs, mem,
-    os::unix::ffi::OsStrExt,
-    path::PathBuf,
-    ptr,
-};
+use std::{cmp, collections::HashMap, env, ffi::CStr, fs, mem, ptr};
 
 #[derive(Debug)]
 pub struct UserData {
@@ -155,7 +149,7 @@ pub fn get_user_data() -> UserData {
     };
 
     // Current working directory
-    let cwd: String = env::current_dir().unwrap().to_string_lossy().into();
+    let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
 
     let mem_info = mem_info().unwrap();
 
@@ -185,16 +179,13 @@ pub fn get_hostname() -> Option<String> {
     let hostname_max = unsafe { sysconf(_SC_HOST_NAME_MAX) } as usize;
     let mut buffer = vec![0_u8; hostname_max + 1]; // +1 to account for the NUL character
     let ret = unsafe { gethostname(buffer.as_mut_ptr() as *mut c_char, buffer.len()) };
-    if ret != 0 {
-        return None;
-    }
-    let end = buffer
-        .iter()
-        .position(|&b| b == 0)
-        .unwrap_or_else(|| buffer.len());
-    buffer.resize(end, 0);
 
-    String::from_utf8(buffer).ok()
+    if ret == 0 {
+        let cstr = CStr::from_bytes_with_nul(&buffer).ok()?;
+        Some(String::from_utf8_lossy(cstr.to_bytes()).into())
+    } else {
+        None
+    }
 }
 
 #[allow(unreachable_code)]
@@ -227,13 +218,7 @@ pub fn get_arch() -> String {
 }
 
 pub fn get_distro() -> Option<String> {
-    let program = std::fs::read_to_string("/etc/os-release");
-    if program.is_err() {
-        return None;
-    }
-    let program = program.unwrap().into_bytes();
-
-    let distro = String::from_utf8_lossy(&program);
+    let distro = std::fs::read_to_string("/etc/os-release").ok()?;
 
     for i in distro.split('\n') {
         let mut j = i.split('=');
@@ -249,7 +234,6 @@ pub fn get_distro() -> Option<String> {
 pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
     let mut buf = Vec::with_capacity(2048);
     let mut result = ptr::null_mut();
-
     let mut passwd: passwd = unsafe { mem::zeroed() };
 
     let getpwuid_r_code = unsafe {
@@ -263,20 +247,14 @@ pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
     };
 
     if getpwuid_r_code == 0 && !result.is_null() {
-        let username_cstr = unsafe { CStr::from_ptr(passwd.pw_name) };
-        let username_os_str = OsStr::from_bytes(username_cstr.to_bytes());
-        let username: PathBuf = OsString::from(username_os_str).into();
-        let username = username.to_string_lossy().into();
-
-        let hd_cstr = unsafe { CStr::from_ptr(passwd.pw_dir) };
-        let hd_os_str = OsStr::from_bytes(hd_cstr.to_bytes());
-        let hd_path: PathBuf = OsString::from(hd_os_str).into();
-        let home_dir = hd_path.to_string_lossy().into();
-
-        let sh_cstr = unsafe { CStr::from_ptr(passwd.pw_shell) };
-        let sh_os_str = OsStr::from_bytes(sh_cstr.to_bytes());
-        let sh_path: PathBuf = OsString::from(sh_os_str).into();
-        let shell = sh_path.to_string_lossy().into();
+        let username = char_ptr_to_string(passwd.pw_name);
+        let home_dir = char_ptr_to_string(passwd.pw_dir);
+        // From "/usr/bin/shell" to just "shell"
+        let shell = char_ptr_to_string(passwd.pw_shell)
+            .rsplit(|a| a == '/')
+            .next()
+            .unwrap()
+            .to_string();
 
         Some((username, home_dir, shell))
     } else {
@@ -300,7 +278,7 @@ pub fn get_uptime() -> Option<String> {
 
     // Ignore decimal places
     let mut uptime_in_seconds = uptime_in_centiseconds.ok()? as u64;
-    // Result
+    // Final result
     let mut uptime = String::new();
 
     for (period, period_name) in periods {

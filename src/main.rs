@@ -1,6 +1,7 @@
 mod error;
 mod logos;
 mod newfetch;
+mod util;
 
 use crate::newfetch::UserData;
 
@@ -87,7 +88,7 @@ fn main() {
         "hostname", data.hostname,
         "cpu", data.cpu_info,
         "uptime", newfetch::get_uptime().unwrap(),
-        "home dir.", data.hmd,
+        "home", data.hmd,
         "shell", data.shell,
         "distro", data.distro,
         "desktop env.", data.desk_env,
