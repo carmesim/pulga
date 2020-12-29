@@ -1,0 +1,19 @@
+on: [push]
+
+name: BuildAndValgrind
+
+jobs:
+  build_and_test:
+    name: 
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt update && sudo apt install -y valgrind
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - run: ./run-under-valgrind.sh
