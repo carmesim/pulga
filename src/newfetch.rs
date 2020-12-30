@@ -9,7 +9,7 @@ use libc::{
     _SC_HOST_NAME_MAX,
 };
 
-use std::{cmp, env, mem, ptr};
+use std::{cmp, env, mem, ptr, fs};
 
 #[derive(Debug)]
 pub struct UserData {
@@ -122,18 +122,19 @@ pub fn get_user_data() -> UserData {
         username,
         hostname,
         cpu_info: format!(
-            "{}x {} ({})",
+            "{} - {}x {}",
+            get_cpu_model().unwrap_or("Unknown".to_string()),
             get_logical_cpus(),
             get_cpu_max_freq(),
-            uname_data.machine
         ),
         cwd,
         hmd: home_dir,
         shell,
         kernel_version: format!(
-            "{} {}", 
+            "{} {} {}", 
             uname_data.system_name, 
-            uname_data.release
+            uname_data.release,
+            uname_data.machine
         ),
         desk_env: get_desktop_environment(),
         distro,
@@ -167,12 +168,19 @@ pub fn get_hostname() -> Option<String> {
 pub fn get_distro() -> Option<String> {
     let distro = std::fs::read_to_string("/etc/os-release").ok()?;
 
-    for i in distro.split('\n') {
-        let mut j = i.split('=');
-
-        if let "PRETTY_NAME" = j.next()? {
-            return Some(j.next()?.trim_matches('"').to_string());
+    for line in distro.split('\n') {
+        if line.len() < 12 {
+            continue;
         }
+        match &line[..11] {
+            "PRETTY_NAME" => 
+            {
+                return Some( line[13..]
+                    .trim_matches('"')
+                    .to_string())
+            },
+            _ => {}
+        };
     }
 
     Some("Linux".to_string())
@@ -207,6 +215,29 @@ pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
     } else {
         None
     }
+}
+
+pub fn get_cpu_model() -> Option<String> {
+    let data = fs::read_to_string("/proc/cpuinfo").ok()?;
+    for line in data.split('\n') {
+        if line.len() < 11 {
+            continue;
+        }
+        match &line[..10] {
+            "model name" => 
+            {
+                return Some( line[12..]
+                    .splitn(2, '@')
+                    .nth(0)
+                    .unwrap()
+                    .trim()
+                    .to_string())
+            },
+            _ => {}
+        };
+    }
+
+    None
 }
 
 pub fn get_uptime(uptime_in_centiseconds: usize) -> String {
