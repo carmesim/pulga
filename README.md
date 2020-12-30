@@ -61,3 +61,6 @@ At every commit, the GitHub Actions workflow runs Pulga under [Valgrind](https:/
 - [ ] Display CPU model
 - [ ] Display GPU model
 
+## Non-goals
+
+Pulga currently focuses solely on Linux distros. Supporting other Unix-like OSes is possible in the future. Supporting Windows is a non-goal.
