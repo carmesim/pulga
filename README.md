@@ -58,7 +58,7 @@ At every commit, the GitHub Actions workflow runs Pulga under [Valgrind](https:/
 - [ ] Add command-line arguments
 - [ ] Display the distro on non-`systemd`-based systems
 - [ ] Display the default editor
-- [ ] Display CPU model
+- [x] Display CPU model
 - [ ] Display GPU model
 
 ## Non-goals

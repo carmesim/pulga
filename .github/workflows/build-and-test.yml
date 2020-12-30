@@ -4,7 +4,7 @@ name: BuildAndValgrind
 
 jobs:
   build_and_test:
-    name: 
+    name:
     runs-on: ubuntu-latest
     steps:
       - run: sudo apt update && sudo apt install -y valgrind
