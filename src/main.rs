@@ -11,10 +11,12 @@ use indoc::indoc;
 use sugars::{boxed, hmap};
 use termion::{color::*, cursor::*};
 
+use smallvec::SmallVec;
+
 use std::collections::HashMap;
 
 fn show(text: String, logo: &str) {
-    let lines: Vec<&str> = text.lines().map(|x| x.trim()).collect();
+    let lines: SmallVec<[&str; 128]> = text.lines().map(|x| x.trim()).collect();
 
     // Code to show colored logo
     #[rustfmt::skip]
@@ -32,7 +34,7 @@ fn show(text: String, logo: &str) {
         m
     };
 
-    let logo = logo.chars().collect::<Vec<char>>();
+    let logo = logo.chars().collect::<SmallVec<[char; 8192]>>();
 
     let mut i = 0;
     while i < logo.len() - 2 {

@@ -1,7 +1,7 @@
 use crate::{
-    util::{char_ptr_to_string, os_str_to_string},
-    uname::UnameData,
     sysinfo::SysInfo,
+    uname::UnameData,
+    util::{char_ptr_to_string, os_str_to_string},
 };
 
 use libc::{
@@ -9,7 +9,9 @@ use libc::{
     _SC_HOST_NAME_MAX,
 };
 
-use std::{cmp, env, mem, ptr, fs};
+use smallvec::{smallvec, SmallVec};
+
+use std::{cmp, env, fs, mem, ptr};
 
 #[derive(Debug)]
 pub struct UserData {
@@ -123,7 +125,7 @@ pub fn get_user_data() -> UserData {
         hostname,
         cpu_info: format!(
             "{} - {}x {}",
-            get_cpu_model().unwrap_or("Unknown".to_string()),
+            get_cpu_model().unwrap_or_else(|| "Unknown".to_string()),
             get_logical_cpus(),
             get_cpu_max_freq(),
         ),
@@ -131,19 +133,19 @@ pub fn get_user_data() -> UserData {
         hmd: home_dir,
         shell,
         kernel_version: format!(
-            "{} {} {}", 
-            uname_data.system_name, 
-            uname_data.release,
-            uname_data.machine
+            "{} {} {}",
+            uname_data.system_name, uname_data.release, uname_data.machine
         ),
         desk_env: get_desktop_environment(),
         distro,
         uptime: get_uptime(
             // We pass to get_uptime the current uptime in seconds
-            sys_info.uptime
+            sys_info.uptime,
         ),
         total_memory: pretty_bytes(sys_info.total_ram as f64),
-        used_memory: pretty_bytes( (sys_info.total_ram - sys_info.free_ram - sys_info.shared_ram) as f64),
+        used_memory: pretty_bytes(
+            (sys_info.total_ram - sys_info.free_ram - sys_info.shared_ram) as f64,
+        ),
     }
 }
 
@@ -168,26 +170,17 @@ pub fn get_hostname() -> Option<String> {
 pub fn get_distro() -> Option<String> {
     let distro = std::fs::read_to_string("/etc/os-release").ok()?;
 
-    for line in distro.split('\n') {
-        if line.len() < 12 {
-            continue;
+    for line in distro.split('\n').filter(|line| line.len() >= 11) {
+        if let "PRETTY_NAME" = &line[..11] {
+            return Some(line[13..].trim_matches('"').to_string());
         }
-        match &line[..11] {
-            "PRETTY_NAME" => 
-            {
-                return Some( line[13..]
-                    .trim_matches('"')
-                    .to_string())
-            },
-            _ => {}
-        };
     }
 
     Some("Linux".to_string())
 }
 
 pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
-    let mut buf = Vec::with_capacity(2048);
+    let mut buf = [0_i8; 2048];
     let mut result = ptr::null_mut();
     let mut passwd: passwd = unsafe { mem::zeroed() };
 
@@ -196,7 +189,7 @@ pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
             getuid(),
             &mut passwd,
             buf.as_mut_ptr(),
-            buf.capacity(),
+            buf.len(),
             &mut result,
         )
     };
@@ -223,17 +216,8 @@ pub fn get_cpu_model() -> Option<String> {
         if line.len() < 11 {
             continue;
         }
-        match &line[..10] {
-            "model name" => 
-            {
-                return Some( line[12..]
-                    .splitn(2, '@')
-                    .nth(0)
-                    .unwrap()
-                    .trim()
-                    .to_string())
-            },
-            _ => {}
+        if let "model name" = &line[..10] {
+            return Some(line[12..].splitn(2, '@').next().unwrap().trim().to_string());
         };
     }
 
@@ -241,8 +225,7 @@ pub fn get_cpu_model() -> Option<String> {
 }
 
 pub fn get_uptime(uptime_in_centiseconds: usize) -> String {
-
-    let periods = vec![
+    let periods: SmallVec<[(u64, &str); 8]> = smallvec![
         (60 * 60 * 24 * 365, "year"),
         (60 * 60 * 24 * 30, "month"),
         (60 * 60 * 24, "day"),
