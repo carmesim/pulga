@@ -5,10 +5,10 @@ use std::mem;
 #[derive(Debug)]
 pub struct SysInfo {
     // Total usable main memory size
-    pub uptime: usize,
-    pub total_ram: usize,
+    pub uptime:     usize,
+    pub total_ram:  usize,
     // Available memory size
-    pub free_ram: usize,
+    pub free_ram:   usize,
     pub shared_ram: usize,
 }
 // Other possible info we could get from sysinfo():
@@ -22,9 +22,9 @@ impl SysInfo {
         assert_eq!(ret_val, 0, "libc::sysinfo failed.");
 
         SysInfo {
-            uptime: sysinfo_s.uptime as usize,
-            total_ram: sysinfo_s.totalram as usize,
-            free_ram: sysinfo_s.freeram as usize,
+            uptime:     sysinfo_s.uptime as usize,
+            total_ram:  sysinfo_s.totalram as usize,
+            free_ram:   sysinfo_s.freeram as usize,
             shared_ram: sysinfo_s.sharedram as usize,
         }
     }

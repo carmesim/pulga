@@ -7,6 +7,8 @@ overflow_delimited_expr = true
 reorder_impl_items = true
 use_field_init_shorthand = true
 edition = "2018"
+enum_discrim_align_threshold = 12
+struct_field_align_threshold = 12
 
 unstable_features = true
 format_strings = true

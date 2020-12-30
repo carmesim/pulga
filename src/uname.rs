@@ -3,10 +3,10 @@ use std::{ffi::CStr, mem};
 
 pub struct UnameData {
     pub system_name: String,
-    pub node_name: String,
-    pub release: String,
-    pub version: String,
-    pub machine: String,
+    pub node_name:   String,
+    pub release:     String,
+    pub version:     String,
+    pub machine:     String,
 }
 
 impl UnameData {
@@ -25,10 +25,10 @@ impl UnameData {
 
         UnameData {
             system_name: sysname_cstr.to_string_lossy().into_owned(),
-            node_name: nodename_cstr.to_string_lossy().into_owned(),
-            release: release_cstr.to_string_lossy().into_owned(),
-            version: version_cstr.to_string_lossy().into_owned(),
-            machine: machine_cstr.to_string_lossy().into_owned(),
+            node_name:   nodename_cstr.to_string_lossy().into_owned(),
+            release:     release_cstr.to_string_lossy().into_owned(),
+            version:     version_cstr.to_string_lossy().into_owned(),
+            machine:     machine_cstr.to_string_lossy().into_owned(),
         }
     }
 }

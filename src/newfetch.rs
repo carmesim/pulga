@@ -15,18 +15,18 @@ use std::{cmp, env, fs, mem, ptr};
 
 #[derive(Debug)]
 pub struct UserData {
-    pub username: String,       // User's username
-    pub hostname: String,       // User's hostname
-    pub cpu_info: String,       // Some CPU info
-    pub cwd: String,            // User's current working directory. TODO: unneeded?
-    pub hmd: String,            // User's home directory
-    pub shell: String,          // User's standard shell
-    pub desk_env: String,       // User's desktop environment
-    pub distro: String,         // User's distro
-    pub uptime: String,         // Time elapsed since boot
+    pub username:       String, // User's username
+    pub hostname:       String, // User's hostname
+    pub cpu_info:       String, // Some CPU info
+    pub cwd:            String, // User's current working directory. TODO: unneeded?
+    pub hmd:            String, // User's home directory
+    pub shell:          String, // User's standard shell
+    pub desk_env:       String, // User's desktop environment
+    pub distro:         String, // User's distro
+    pub uptime:         String, // Time elapsed since boot
     pub kernel_version: String, // User's current kernel version
-    pub total_memory: String,   // Total memory in human-readable form
-    pub used_memory: String,    // Used memory in human-readable form
+    pub total_memory:   String, // Total memory in human-readable form
+    pub used_memory:    String, // Used memory in human-readable form
 }
 
 #[repr(C)]
@@ -34,15 +34,15 @@ pub struct UserData {
 pub struct MemInfo {
     /// Total physical memory.
     pub total: u64,
-    pub free: u64,
+    pub free:  u64,
     pub avail: u64,
 
     pub buffers: u64,
-    pub cached: u64,
+    pub cached:  u64,
 
     /// Total swap memory.
     pub swap_total: u64,
-    pub swap_free: u64,
+    pub swap_free:  u64,
 }
 
 /// The number of threads the CPU can handle at any given time
