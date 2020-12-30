@@ -1,6 +1,7 @@
 use crate::{
     util::{char_ptr_to_string, os_str_to_string},
     uname::UnameData,
+    sysinfo::SysInfo,
 };
 
 use libc::{
@@ -8,7 +9,7 @@ use libc::{
     _SC_HOST_NAME_MAX,
 };
 
-use std::{cmp, collections::HashMap, env, fs, mem, ptr};
+use std::{cmp, env, mem, ptr};
 
 #[derive(Debug)]
 pub struct UserData {
@@ -20,6 +21,7 @@ pub struct UserData {
     pub shell: String,          // User's standard shell
     pub desk_env: String,       // User's desktop environment
     pub distro: String,         // User's distro
+    pub uptime: String,         // Time elapsed since boot
     pub kernel_version: String, // User's current kernel version
     pub total_memory: String,   // Total memory in human-readable form
     pub used_memory: String,    // Used memory in human-readable form
@@ -39,49 +41,6 @@ pub struct MemInfo {
     /// Total swap memory.
     pub swap_total: u64,
     pub swap_free: u64,
-}
-
-// This function was adapted from sys-info by Siyu Wang (MIT-licensed)
-/// Returns current memory utilization info
-pub fn mem_info() -> Option<MemInfo> {
-    let s = fs::read_to_string("/proc/meminfo").ok()?;
-    let mut mem_info_map = HashMap::new();
-
-    for line in s.lines() {
-        let mut split_line = line.split_whitespace();
-        let label = split_line.next();
-        let value = split_line.next();
-        if value.is_some() && label.is_some() {
-            let label = label.unwrap().split(':').next()?;
-            let value = value.unwrap().parse::<u64>().ok()?;
-            mem_info_map.insert(label, value);
-        }
-    }
-    let total = mem_info_map.get("MemTotal")?;
-    let free = mem_info_map.get("MemFree")?;
-    let buffers = mem_info_map.get("Buffers")?;
-    let cached = mem_info_map.get("Cached")?;
-    let avail = mem_info_map
-        .get("MemAvailable")
-        .copied()
-        .or_else(|| {
-            let sreclaimable = *mem_info_map.get("SReclaimable")?;
-            let shmem = mem_info_map.get("Shmem")?;
-            Some(free + buffers + cached + sreclaimable - shmem)
-        })
-        ?;
-    let swap_total = mem_info_map.get("SwapTotal")?;
-    let swap_free = mem_info_map.get("SwapFree")?;
-
-    Some(MemInfo {
-        total: *total,
-        free: *free,
-        avail,
-        buffers: *buffers,
-        cached: *cached,
-        swap_total: *swap_total,
-        swap_free: *swap_free,
-    })
 }
 
 /// The number of threads the CPU can handle at any given time
@@ -153,11 +112,11 @@ pub fn get_user_data() -> UserData {
     let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
 
     let uname_data = UnameData::new();
-    
-    let mem_info = mem_info().unwrap();
 
     let hostname = get_hostname().unwrap_or_else(|| "Unknown".to_string());
     let distro = get_distro().unwrap_or_else(|| "Linux".to_string());
+
+    let sys_info = SysInfo::new();
 
     UserData {
         username,
@@ -178,8 +137,12 @@ pub fn get_user_data() -> UserData {
         ),
         desk_env: get_desktop_environment(),
         distro,
-        total_memory: pretty_bytes((mem_info.total * 1024) as f64),
-        used_memory: pretty_bytes(((mem_info.total - mem_info.avail) * 1024) as f64),
+        uptime: get_uptime(
+            // We pass to get_uptime the current uptime in seconds
+            sys_info.uptime
+        ),
+        total_memory: pretty_bytes(sys_info.total_ram as f64),
+        used_memory: pretty_bytes( (sys_info.total_ram - sys_info.free_ram - sys_info.shared_ram) as f64),
     }
 }
 
@@ -246,10 +209,7 @@ pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
     }
 }
 
-pub fn get_uptime() -> Option<String> {
-    let meminfo = fs::read_to_string("/proc/uptime").ok()?;
-    let meminfo: &str = meminfo.split(' ').next()?;
-    let uptime_in_centiseconds = meminfo.parse::<f64>();
+pub fn get_uptime(uptime_in_centiseconds: usize) -> String {
 
     let periods = vec![
         (60 * 60 * 24 * 365, "year"),
@@ -261,7 +221,7 @@ pub fn get_uptime() -> Option<String> {
     ];
 
     // Ignore decimal places
-    let mut uptime_in_seconds = uptime_in_centiseconds.ok()? as u64;
+    let mut uptime_in_seconds = uptime_in_centiseconds as u64;
     // Final result
     let mut uptime = String::new();
 
@@ -289,7 +249,7 @@ pub fn get_uptime() -> Option<String> {
         }
     }
 
-    Some(uptime)
+    uptime
 }
 
 pub fn get_desktop_environment() -> String {

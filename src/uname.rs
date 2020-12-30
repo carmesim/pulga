@@ -19,7 +19,8 @@ impl UnameData {
 
         // uname returns a negative number upon failure
         if ret_val < 0 {
-            // TODO: fallback? panic?
+            // TODO: fallback?
+            panic!("libc::uname failed.");
         };
 
         let sysname_cstr = unsafe { CStr::from_ptr(uts_struct.sysname.as_ptr())  };

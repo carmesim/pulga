@@ -3,6 +3,7 @@ mod logos;
 mod newfetch;
 mod util;
 mod uname;
+mod sysinfo;
 
 use crate::newfetch::UserData;
 
@@ -89,7 +90,7 @@ fn main() {
         "username", data.username,
         "hostname", data.hostname,
         "cpu", data.cpu_info,
-        "uptime", newfetch::get_uptime().unwrap(),
+        "uptime", data.uptime,
         "home", data.hmd,
         "shell", data.shell,
         "distro", data.distro,
