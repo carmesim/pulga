@@ -1,19 +1,36 @@
 use indoc::indoc;
 
 #[allow(dead_code)]
-pub enum Logo {
+pub enum Distro {
     Arch,
     Manjaro,
     Debian,
     Fedora,
 }
 
-pub fn choose_logo(logo: Logo) -> &'static str {
-    match logo {
-        Logo::Arch => ARCH_LOGO,
-        Logo::Manjaro => MANJARO_LOGO,
-        Logo::Debian => DEBIAN_LOGO,
-        Logo::Fedora => FEDORA_LOGO,
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng,
+};
+
+impl Distribution<Distro> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Distro {
+        match rng.gen_range(0..=3) {
+            0 => Distro::Arch,
+            1 => Distro::Manjaro,
+            2 => Distro::Debian,
+            3 => Distro::Fedora,
+            _ => unreachable!(),
+        }
+    }
+}
+
+pub fn choose_art(distro: Distro) -> &'static str {
+    match distro {
+        Distro::Arch => ARCH_LOGO,
+        Distro::Manjaro => MANJARO_LOGO,
+        Distro::Debian => DEBIAN_LOGO,
+        Distro::Fedora => FEDORA_LOGO,
     }
 }
 

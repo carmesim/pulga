@@ -1,9 +1,9 @@
-mod logos;
+mod distros;
 mod newfetch;
 mod sysinfo;
 mod uname;
 mod util;
-mod screenresx11;
+// mod screenresx11;
 
 use crate::newfetch::UserData;
 
@@ -12,9 +12,9 @@ use smallvec::SmallVec;
 use sugars::{boxed, hmap};
 use termion::{color::*, cursor::*};
 
-use std::collections::HashMap;
+use std::{collections::HashMap, env};
 
-fn show(text: String, logo: &str) {
+fn show(text: String, art: &str) {
     let lines: SmallVec<[&str; 128]> = text.lines().map(|x| x.trim()).collect();
 
     // Code to show colored logo
@@ -33,7 +33,7 @@ fn show(text: String, logo: &str) {
         m
     };
 
-    let logo = logo.chars().collect::<SmallVec<[char; 8192]>>();
+    let logo = art.chars().collect::<SmallVec<[char; 8192]>>();
 
     let mut i = 0;
     while i < logo.len() - 2 {
@@ -104,10 +104,21 @@ fn main() {
         r = Fg(LightRed)
     );
 
-    // println!("{}", text.len());
+    let mut is_random = false;
 
-    let logo = logos::choose_logo(logos::Logo::Debian);
-    // println!("{}", logo);
+    // Small arg parsing out of nowhere
+    for arg in env::args().skip(1) {
+        if arg == "--random" || arg == "-r" {
+            is_random = true;
+        }
+    }
 
-    show(text, logo);
+    let distro = if is_random {
+        rand::random()
+    } else {
+        distros::Distro::Debian
+    };
+    let art = distros::choose_art(distro);
+
+    show(text, art);
 }
