@@ -1,9 +1,9 @@
 mod error;
 mod logos;
 mod newfetch;
-mod util;
-mod uname;
 mod sysinfo;
+mod uname;
+mod util;
 
 use crate::newfetch::UserData;
 
@@ -14,7 +14,7 @@ use termion::{color::*, cursor::*};
 use std::collections::HashMap;
 
 fn show(text: String, logo: &str) {
-    let lines: Vec<String> = text.lines().map(|x| x.trim().to_string()).collect();
+    let lines: Vec<&str> = text.lines().map(|x| x.trim()).collect();
 
     // Code to show colored logo
     #[rustfmt::skip]
