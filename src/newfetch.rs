@@ -113,12 +113,12 @@ pub fn get_user_data() -> UserData {
     // Current working directory
     let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
 
-    let uname_data = UnameData::new();
+    let uname_data = UnameData::gather();
 
     let hostname = get_hostname().unwrap_or_else(|| "Unknown".to_string());
     let distro = get_distro().unwrap_or_else(|| "Linux".to_string());
 
-    let sys_info = SysInfo::new();
+    let sys_info = SysInfo::gather();
 
     UserData {
         username,
@@ -170,7 +170,7 @@ pub fn get_hostname() -> Option<String> {
 pub fn get_distro() -> Option<String> {
     let distro = std::fs::read_to_string("/etc/os-release").ok()?;
 
-    for line in distro.split('\n').filter(|line| line.len() >= 11) {
+    for line in distro.lines().filter(|line| line.len() >= 11) {
         if let "PRETTY_NAME" = &line[..11] {
             return Some(line[13..].trim_matches('"').to_string());
         }
@@ -212,7 +212,7 @@ pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
 
 pub fn get_cpu_model() -> Option<String> {
     let data = fs::read_to_string("/proc/cpuinfo").ok()?;
-    for line in data.split('\n') {
+    for line in data.lines() {
         if line.len() < 11 {
             continue;
         }
@@ -262,7 +262,6 @@ pub fn get_uptime(uptime_in_centiseconds: usize) -> String {
             uptime_in_seconds %= period;
         }
     }
-
     uptime
 }
 

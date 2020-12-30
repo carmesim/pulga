@@ -8,10 +8,9 @@ mod util;
 use crate::newfetch::UserData;
 
 use indoc::indoc;
+use smallvec::SmallVec;
 use sugars::{boxed, hmap};
 use termion::{color::*, cursor::*};
-
-use smallvec::SmallVec;
 
 use std::collections::HashMap;
 
