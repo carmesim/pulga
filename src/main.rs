@@ -3,6 +3,7 @@ mod newfetch;
 mod sysinfo;
 mod uname;
 mod util;
+mod screenresx11;
 
 use crate::newfetch::UserData;
 
