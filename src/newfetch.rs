@@ -189,7 +189,11 @@ pub fn get_distro() -> Option<String> {
 }
 
 pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
-    let mut buf = [0_i8; 2048];
+    // TODO: using Vec here instead of an array because
+    // the value of `buf.as_mut_ptr()` below may vary in type depending on the architecture
+    // e.g.: *mut u8 on x86-64
+    //       *mut i8 on ARMv7
+    let mut buf = Vec::with_capacity(2048);
     let mut result = ptr::null_mut();
     let mut passwd: passwd = unsafe { mem::zeroed() };
 
