@@ -3,7 +3,9 @@ mod newfetch;
 mod sysinfo;
 mod uname;
 mod util;
-// mod screenresx11;
+
+// TODO: make screenresx11 optional
+mod screenresx11;
 
 use crate::newfetch::UserData;
 

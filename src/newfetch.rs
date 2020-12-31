@@ -2,6 +2,7 @@ use crate::{
     sysinfo::SysInfo,
     uname::UnameData,
     util::{char_ptr_to_string, os_str_to_string},
+    screenresx11::get_screen_resolution,
 };
 
 use libc::{
@@ -108,10 +109,12 @@ pub fn get_user_data() -> UserData {
     } else {
         let unknown = "Unknown".to_string();
         (unknown.clone(), unknown.clone(), unknown)
-    };
+    };    
 
     // Current working directory
     let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
+
+    unsafe { dbg!(get_screen_resolution()) };
 
     let uname_data = UnameData::gather();
 
@@ -143,9 +146,7 @@ pub fn get_user_data() -> UserData {
             sys_info.uptime,
         ),
         total_memory: pretty_bytes(sys_info.total_ram as f64),
-        used_memory: pretty_bytes(
-            (sys_info.total_ram - sys_info.free_ram - sys_info.shared_ram) as f64,
-        ),
+        used_memory: pretty_bytes((sys_info.total_ram - sys_info.free_ram) as f64), 
     }
 }
 

@@ -19,6 +19,7 @@ impl SysInfo {
         let mut sysinfo_s: sysinfo = unsafe { mem::zeroed() };
 
         let ret_val = unsafe { libc::sysinfo(&mut sysinfo_s) };
+
         assert_eq!(ret_val, 0, "libc::sysinfo failed.");
 
         SysInfo {
