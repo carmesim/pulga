@@ -36,6 +36,39 @@ Even though Pulga makes use of [Unsafe Rust](https://doc.rust-lang.org/book/ch19
 
 At every commit, the GitHub Actions workflow runs Pulga under [Valgrind](https://valgrind.org/). If Valgrind encounters any error, the build is considered to be a failure.
 
+## Dependencies
+
+By default, Pulga does not have any dependencies not handled by [Cargo](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html).
+
+Pulga can obtain screen resolution using optional dependencies.
+
+When on X11, the feature `on_x11` uses Xlib and RandR extensions to obtain screen resolutions for all currently connected monitors.
+For this to work, two very common libraries must be installed.
+
+* On Debian-based distros:
+
+```shell
+sudo apt install libx11-dev libxrandr-dev
+```
+
+* On Arch Linux-based distros:
+```shell
+sudo pacman -S libx11 libxrandr
+```
+
+## Building
+
+Cargo and a somewhat recent Rust toolchain must be installed to build. Get [rustup](https://rustup.rs/) if you want to install Rust.
+```
+git clone https://github.com/carmesim/pulga
+cd pulga
+cargo build --release     # Build Pulga with no extra dependencies
+# or
+cargo build --release --features on_x11   # Run Pulga with dependencies on X11 and RandR (see section above)
+# or (TODO)
+cargo build --release --features on_wayland
+```
+
 ## To do
 
 - [x] Display username and hostname
@@ -53,7 +86,8 @@ At every commit, the GitHub Actions workflow runs Pulga under [Valgrind](https:/
 - [ ] Display the terminal being used
 - [ ] Add the ability to customize Pulga through a configuration file located in `~/.config/pulga.toml`.
 - [ ] Display storage usage
-- [ ] Display screen resolution
+- [x] Display screen resolution on X11
+- [ ] Display screen resolution on Wayland
 - [ ] Add logos for more Linux distributions
 - [ ] Add command-line arguments
 - [ ] Display the distro on non-`systemd`-based systems
