@@ -4,10 +4,10 @@ name: BuildAndValgrind
 
 jobs:
   build_and_test:
-    name:
+    name: Build pulga and run it under Valgrind
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt update && sudo apt install -y valgrind
+      - run: sudo apt update && sudo apt install -y valgrind libx11-dev libxrandr-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
