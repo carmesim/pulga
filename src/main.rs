@@ -77,7 +77,8 @@ fn show(text: String, art: &str) {
 
 fn main() {
     let data: UserData = newfetch::get_user_data();
-
+    
+    #[cfg(not(show_screen_res))]
     #[rustfmt::skip]
     let text = format!(indoc! {
         "{c}{}{w}: {r}{}{R}
@@ -104,7 +105,40 @@ fn main() {
         c = Fg(LightCyan),
         w = Fg(LightBlack),
         R = Fg(Reset),
-        r = Fg(LightRed)
+        r = Fg(LightRed),
+    );
+
+
+    #[cfg(show_screen_res)]
+    #[rustfmt::skip]
+    let text = format!(indoc! {
+        "{c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}{R} / {r}{}{R}"
+        },
+        "username", data.username,
+        "hostname", data.hostname,
+        "cpu", data.cpu_info,
+        "uptime", data.uptime,
+        "home", data.hmd,
+        "shell", data.shell,
+        "distro", data.distro,
+        "kernel", data.kernel_version,
+        "desktop env.", data.desk_env,
+        "monitor", data.monitor_res,
+        "memory usage", data.used_memory, data.total_memory,
+        c = Fg(LightCyan),
+        w = Fg(LightBlack),
+        R = Fg(Reset),
+        r = Fg(LightRed),
     );
 
     let mut is_random = false;

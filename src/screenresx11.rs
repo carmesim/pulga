@@ -4,9 +4,9 @@ use x11::xrandr::{
 };
 use std::{ptr, vec::Vec};
 
-pub unsafe fn get_screen_resolution() -> Vec<(u32, u32)> {
+pub unsafe fn get_screen_resolution() -> Vec<String> {
 
-    let mut resolutions: Vec<(u32, u32)> = vec![];
+    let mut resolutions = vec![];
 
     let display: *mut Display = XOpenDisplay(ptr::null());
     
@@ -18,7 +18,7 @@ pub unsafe fn get_screen_resolution() -> Vec<(u32, u32)> {
         let info: *mut XRRCrtcInfo = XRRGetCrtcInfo(display, screens, *(*screens).crtcs.offset(i));
         match ((*info).width, (*info).height) {
             (wdt, hgt) if wdt != 0 && hgt != 0 => {
-                resolutions.push((wdt, hgt))
+                resolutions.push(format!("{}p", hgt));
             },
             (_, _) => {},
         };

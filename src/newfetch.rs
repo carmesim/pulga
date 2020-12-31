@@ -30,6 +30,7 @@ pub struct UserData {
     pub kernel_version: String, // User's current kernel version
     pub total_memory:   String, // Total memory in human-readable form
     pub used_memory:    String, // Used memory in human-readable form
+    pub monitor_res:    String, // Resolution of currently connected monitors. Only used when the features on_x11 or (TODO) on_wayland are set.
 }
 
 #[repr(C)]
@@ -116,15 +117,18 @@ pub fn get_user_data() -> UserData {
     // Current working directory
     let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
 
-    #[cfg(feature = "on_x11")]
-    unsafe { dbg!(get_screen_resolution()) };
-
     let uname_data = UnameData::gather();
 
     let hostname = get_hostname().unwrap_or_else(|| "Unknown".to_string());
     let distro = get_distro().unwrap_or_else(|| "Linux".to_string());
 
     let sys_info = SysInfo::gather();
+
+    #[cfg(show_screen_res)]
+    let resolution = unsafe { get_screen_resolution().join(" ") };
+
+    #[cfg(not(show_screen_res))]
+    let resolution= "".to_string(); // Unused
 
     UserData {
         username,
@@ -149,7 +153,8 @@ pub fn get_user_data() -> UserData {
             sys_info.uptime,
         ),
         total_memory: pretty_bytes(sys_info.total_ram as f64),
-        used_memory: pretty_bytes((sys_info.total_ram - sys_info.free_ram) as f64), 
+        used_memory: pretty_bytes((sys_info.total_ram - sys_info.free_ram) as f64),
+        monitor_res: resolution,
     }
 }
 
