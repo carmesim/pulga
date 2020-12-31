@@ -5,6 +5,7 @@ mod uname;
 mod util;
 
 // TODO: make screenresx11 optional
+#[cfg(feature = "on_x11")]
 mod screenresx11;
 
 use crate::newfetch::UserData;

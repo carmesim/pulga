@@ -2,8 +2,10 @@ use crate::{
     sysinfo::SysInfo,
     uname::UnameData,
     util::{char_ptr_to_string, os_str_to_string},
-    screenresx11::get_screen_resolution,
 };
+
+#[cfg(feature = "on_x11")]
+use crate::screenresx11::get_screen_resolution;
 
 use libc::{
     c_char, gethostname, getpwuid_r, getuid, passwd, sysconf, CPU_ISSET, CPU_SETSIZE,
@@ -114,6 +116,7 @@ pub fn get_user_data() -> UserData {
     // Current working directory
     let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
 
+    #[cfg(feature = "on_x11")]
     unsafe { dbg!(get_screen_resolution()) };
 
     let uname_data = UnameData::gather();

@@ -13,4 +13,7 @@ indoc = "1.0"
 termion = "1.5"
 sugars = "3.0"
 smallvec = "1.5"
-x11 = "2.18.2"
+x11 = { version = "2.18.2", optional = true }
+
+[features]
+on_x11 = ["x11"]
