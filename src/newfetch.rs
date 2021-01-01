@@ -27,26 +27,11 @@ pub struct UserData {
     pub desk_env:       String, // User's desktop environment
     pub distro:         String, // User's distro
     pub uptime:         String, // Time elapsed since boot
+    pub editor:         String, // User's default editor, as pointed by the EDITOR var env.
     pub kernel_version: String, // User's current kernel version
     pub total_memory:   String, // Total memory in human-readable form
     pub used_memory:    String, // Used memory in human-readable form
     pub monitor_res:    String, // Resolution of currently connected monitors. Only used when the features on_x11 or (TODO) on_wayland are set.
-}
-
-#[repr(C)]
-#[derive(Debug)]
-pub struct MemInfo {
-    /// Total physical memory.
-    pub total: u64,
-    pub free:  u64,
-    pub avail: u64,
-
-    pub buffers: u64,
-    pub cached:  u64,
-
-    /// Total swap memory.
-    pub swap_total: u64,
-    pub swap_free:  u64,
 }
 
 /// The number of threads the CPU can handle at any given time
@@ -71,21 +56,18 @@ fn get_logical_cpus() -> usize {
     }
 }
 
-pub fn get_cpu_max_freq() -> String {
+pub fn get_cpu_max_freq() -> Option<String> {
     let scaling_max_freq_str =
         match std::fs::read_to_string("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq") {
             Ok(freq) => freq,
-            Err(_) => return "Unknown Frequency".to_string(),
+            Err(_) => return None,
         };
 
-    let max_freq_hz: usize = match scaling_max_freq_str.trim().parse() {
-        Ok(freq) => freq,
-        Err(_) => return "Unknown Frequency".to_string(),
-    };
+    let max_freq_hz: usize = scaling_max_freq_str.trim().parse().ok()?;
 
     let max_freq_ghz = (max_freq_hz as f64) / 1000000.0;
 
-    format!("{:.2} GHz", max_freq_ghz)
+    Some (format!("{:.2} GHz", max_freq_ghz))
 }
 
 /// pretty_bytes gets a value in bytes and returns a human-readable form of it
@@ -137,11 +119,12 @@ pub fn get_user_data() -> UserData {
             "{} - {}x {}",
             get_cpu_model().unwrap_or_else(|| "Unknown".to_string()),
             get_logical_cpus(),
-            get_cpu_max_freq(),
+            get_cpu_max_freq().unwrap_or_else(|| "Unknown Freq.".to_string()),
         ),
         cwd,
         hmd: home_dir,
         shell,
+        editor: get_default_editor().unwrap_or_else(|| "Unknown".to_string()),
         kernel_version: format!(
             "{} {} {}",
             uname_data.system_name, uname_data.release, uname_data.machine
@@ -276,6 +259,20 @@ pub fn get_uptime(uptime_in_centiseconds: usize) -> String {
         }
     }
     uptime
+}
+
+pub fn get_default_editor() -> Option<String> {
+    let def_editor_path = std::env::var_os("EDITOR")?
+                                    .to_string_lossy()
+                                    .to_string();
+    
+    // Return the editor's executable name, without its path
+    Some (
+        def_editor_path.rsplit(|a| a == '/')
+            .next()
+            .unwrap()
+            .to_string()
+    )
 }
 
 pub fn get_desktop_environment() -> String {

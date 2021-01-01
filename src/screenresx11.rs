@@ -22,7 +22,6 @@ pub unsafe fn get_screen_resolution() -> Vec<String> {
             },
             (_, _) => {},
         };
-
         XRRFreeCrtcInfo(info);
     }
 

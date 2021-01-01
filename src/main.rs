@@ -4,7 +4,6 @@ mod sysinfo;
 mod uname;
 mod util;
 
-// TODO: make screenresx11 optional
 #[cfg(feature = "on_x11")]
 mod screenresx11;
 
@@ -91,10 +90,10 @@ fn main() {
     #[cfg(not(show_screen_res))]
     #[rustfmt::skip]
     let text = format!(indoc! {
-        "{c}{}{w}: {r}{}{R}
+        "{c}{}{R}@{c}{}{R}
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
+         {c}{}{w}: {r}{}/{R}
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R}
@@ -102,12 +101,12 @@ fn main() {
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R} / {r}{}{R}"
         },
-        "username", data.username,
-        "hostname", data.hostname,
+        data.username, data.hostname,
         "cpu", data.cpu_info,
         "uptime", data.uptime,
         "home", data.hmd,
         "shell", data.shell,
+        "editor", data.editor,
         "distro", data.distro,
         "kernel", data.kernel_version,
         "desktop env.", data.desk_env,
@@ -167,7 +166,7 @@ fn main() {
         // This is seriously hacky
         unsafe { mem::transmute(get_rand(distros::DISTROS) as i8) }
     } else {
-        distros::Distro::Debian
+        distros::Distro::Fedora
     };
     let art = distros::choose_art(distro);
 

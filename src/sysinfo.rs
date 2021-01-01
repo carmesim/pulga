@@ -12,7 +12,7 @@ pub struct SysInfo {
     pub shared_ram: usize,
 }
 // Other possible info we could get from sysinfo():
-// Shared RAM, total and free swap
+// Shared RAM; total and free swap; running processes
 
 impl SysInfo {
     pub fn gather() -> SysInfo {
@@ -21,6 +21,7 @@ impl SysInfo {
         let ret_val = unsafe { libc::sysinfo(&mut sysinfo_s) };
 
         assert_eq!(ret_val, 0, "libc::sysinfo failed.");
+
 
         SysInfo {
             uptime:     sysinfo_s.uptime as usize,
