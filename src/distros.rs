@@ -1,28 +1,14 @@
 use indoc::indoc;
 
+// Length of entries in the Distro enum.
+pub const DISTROS: i32 = 4;
+
 #[allow(dead_code)]
 pub enum Distro {
     Arch,
     Manjaro,
     Debian,
     Fedora,
-}
-
-use rand::{
-    distributions::{Distribution, Standard},
-    Rng,
-};
-
-impl Distribution<Distro> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Distro {
-        match rng.gen_range(0..=3) {
-            0 => Distro::Arch,
-            1 => Distro::Manjaro,
-            2 => Distro::Debian,
-            3 => Distro::Fedora,
-            _ => unreachable!(),
-        }
-    }
 }
 
 pub fn choose_art(distro: Distro) -> &'static str {

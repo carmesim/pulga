@@ -7,7 +7,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = "0.8"
 libc = "0.2"
 indoc = "1.0"
 termion = "1.5"
@@ -17,3 +16,8 @@ x11 = { version = "2.18.2", optional = true }
 
 [features]
 on_x11 = ["x11"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3

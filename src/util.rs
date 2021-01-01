@@ -1,4 +1,4 @@
-use libc::c_char;
+use libc::{c_char, self};
 use std::ffi::{CStr, OsStr};
 
 // Unix specific way to convert from bytes to OsStr
@@ -13,4 +13,10 @@ pub(crate) unsafe fn char_ptr_to_string(ptr: *mut c_char) -> String {
 pub(crate) fn os_str_to_string(os_str: &OsStr) -> String {
     let string = String::from_utf8_lossy(os_str.as_bytes());
     string.into()
+}
+
+/// Simple rand function, wraps over libc::rand
+/// It isn't super secure, but we don't really need security 
+pub(crate) fn get_rand(max: i32) -> i32 {
+    unsafe { libc::rand() % max } 
 }

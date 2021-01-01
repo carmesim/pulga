@@ -8,14 +8,20 @@ mod util;
 #[cfg(feature = "on_x11")]
 mod screenresx11;
 
-use crate::newfetch::UserData;
+use crate::
+{
+    newfetch::UserData,
+    util::get_rand,
+};
+
 
 use indoc::indoc;
 use smallvec::SmallVec;
 use sugars::{boxed, hmap};
 use termion::{color::*, cursor::*};
+use libc;
 
-use std::{collections::HashMap, env};
+use std::{collections::HashMap, env, ptr, mem};
 
 fn show(text: String, art: &str) {
     let lines: SmallVec<[&str; 128]> = text.lines().map(|x| x.trim()).collect();
@@ -76,6 +82,10 @@ fn show(text: String, art: &str) {
 }
 
 fn main() {
+
+    // Seed libc::rand
+    unsafe { libc::srand(libc::time(ptr::null_mut()) as u32); }
+
     let data: UserData = newfetch::get_user_data();
     
     #[cfg(not(show_screen_res))]
@@ -150,8 +160,12 @@ fn main() {
         }
     }
 
+
+    
+
     let distro = if is_random {
-        rand::random()
+        // This is seriously hacky
+        unsafe { mem::transmute(get_rand(distros::DISTROS) as i8) }
     } else {
         distros::Distro::Debian
     };
