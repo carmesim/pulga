@@ -1,3 +1,8 @@
+// TODO: /cpu/procinfo quirks
+//     * Intel usually puts an @ with the frequency in `model name`
+//     * AMD usually puts something like "Eight-Core Processor" in `model name` (at least in the Ryzen series)
+//     * `model nome` is really vague in Raspberry Pis. Getting `Hardware` would be a better fit.
+
 use crate::{
     sysinfo::SysInfo,
     uname::UnameData,

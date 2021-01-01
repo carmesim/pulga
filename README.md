@@ -4,11 +4,11 @@
 
 `Pulga` aims to be a customizable, highly performant command-line system information tool.
 
-![Sample](https://user-images.githubusercontent.com/36349314/103319031-1f002480-4a0f-11eb-96bd-e4bdaa16d853.png)
+![Sample](https://user-images.githubusercontent.com/36349314/103445693-67f5ea00-4c56-11eb-8554-481b77cecbd1.png)
 
 ## Performance
 
-Different than similar tools, such as [Neofetch](https://github.com/dylanaraps/neofetch) and [pfetch](https://github.com/dylanaraps/pfetch), which are written in scripting languages, Pulga is written in Rust, focusing on obtaining all of its data solely using the standard libraries of Rust and C, alongside system files. Pulga currently runs in under 10 milliseconds even on low-end hardware.
+Different than similar tools, such as [Neofetch](https://github.com/dylanaraps/neofetch) and [pfetch](https://github.com/dylanaraps/pfetch), which are written in scripting languages, Pulga is written in Rust, focusing on obtaining all of its data mostly using the standard libraries of Rust and C, alongside system files & libraries. Pulga currently runs in under 10 milliseconds even on low-end hardware.
 
 ### Quick benchmark
 
@@ -90,9 +90,11 @@ cargo build --release --features on_wayland
 - [ ] Display screen resolution on Wayland
 - [ ] Add logos for more Linux distributions
 - [ ] Add command-line arguments
+- [ ] Display font and themes
 - [ ] Display the distro on non-`systemd`-based systems
-- [ ] Display the default editor
+- [x] Display the default editor
 - [x] Display CPU model
+  * Some quirks about this still have to be ironed out
 - [ ] Display GPU model
 
 ## Non-goals

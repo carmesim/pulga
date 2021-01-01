@@ -118,6 +118,7 @@ fn main() {
     );
 
 
+
     #[cfg(show_screen_res)]
     #[rustfmt::skip]
     let text = format!(indoc! {
