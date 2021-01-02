@@ -4,8 +4,8 @@ use std::{
     path::Path,
 };
 
-// Scans through cat /sys/class/drm/*/modes looking for used resolutions.
-// TODO: perhaps we should/could stop at the first mode file that has data in it.
+/// Scans through cat /sys/class/drm/*/modes looking for used resolutions.
+/// Should work on both X11 and Wayland.
 pub fn get_screen_resolution() -> Option<Vec<String>> {
 
     let mut resolutions = vec![];

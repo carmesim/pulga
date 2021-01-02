@@ -4,10 +4,10 @@ mod sysinfo;
 mod uname;
 mod util;
 
-#[cfg(feature = "on_x11")]
+#[cfg(feature = "use_xlib")]
 mod screenresx11;
 
-mod scwayland;
+mod screenres;
 
 use crate::
 {
@@ -90,40 +90,7 @@ fn main() {
     unsafe { libc::srand(libc::time(ptr::null_mut()) as u32); }
 
     let data: UserData = newfetch::get_user_data();
-    
-    #[cfg(not(show_screen_res))]
-    #[rustfmt::skip]
-    let text = format!(indoc! {
-        "{c}{}{R}@{c}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}/{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R} / {r}{}{R}"
-        },
-        data.username, data.hostname,
-        "cpu", data.cpu_info,
-        "uptime", data.uptime,
-        "home", data.hmd,
-        "shell", data.shell,
-        "editor", data.editor,
-        "distro", data.distro,
-        "kernel", data.kernel_version,
-        "desktop env.", data.desk_env,
-        "memory usage", data.used_memory, data.total_memory,
-        c = Fg(LightCyan),
-        w = Fg(LightBlack),
-        R = Fg(Reset),
-        r = Fg(LightRed),
-    );
 
-
-
-    #[cfg(show_screen_res)]
     #[rustfmt::skip]
     let text = format!(indoc! {
         "{c}{}{R}@{c}{}{R}

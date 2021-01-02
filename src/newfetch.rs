@@ -7,13 +7,11 @@ use crate::{
     sysinfo::SysInfo,
     uname::UnameData,
     util::{char_ptr_to_string, os_str_to_string},
+    screenres::get_screen_resolution,
 };
 
-#[cfg(feature = "on_x11")]
+#[cfg(feature = "use_xlib")]
 use crate::screenresx11;
-
-#[cfg(feature = "on_wayland")]
-use crate::scwayland;
 
 use libc::{
     c_char, gethostname, getpwuid_r, getuid, passwd, sysconf, CPU_ISSET, CPU_SETSIZE,
@@ -39,7 +37,7 @@ pub struct UserData {
     pub kernel_version: String, // User's current kernel version
     pub total_memory:   String, // Total memory in human-readable form
     pub used_memory:    String, // Used memory in human-readable form
-    pub monitor_res:    String, // Resolution of currently connected monitors. Only used when the features on_x11 or (TODO) on_wayland are set.
+    pub monitor_res:    String, // Resolution of currently connected monitors.
 }
 
 /// The number of threads the CPU can handle at any given time
@@ -115,15 +113,11 @@ pub fn get_user_data() -> UserData {
     let sys_info = SysInfo::gather();
 
     
-    #[cfg(feature = "on_x11")]
+    #[cfg(feature = "use_xlib")]
     let resolution = unsafe { screenresx11::get_screen_resolution().join(" ") };    
 
-    #[cfg(feature = "on_wayland")]
-    let resolution = scwayland::get_screen_resolution().unwrap_or_else(|| vec!["Unknown".to_string()]).join(" ");
-    
-
-    #[cfg(not(show_screen_res))]
-    let resolution= "".to_string(); // Unused
+    #[cfg(not(feature = "use_xlib"))]
+    let resolution = get_screen_resolution().unwrap_or_else(|| vec!["Unknown".to_string()]).join(" ");
 
     UserData {
         username,
@@ -138,14 +132,11 @@ pub fn get_user_data() -> UserData {
         hmd: home_dir,
         shell,
         editor: get_default_editor().unwrap_or_else(|| "Unknown".to_string()),
-        kernel_version: format!(
-            "{} {} {}",
-            uname_data.system_name, uname_data.release, uname_data.machine
-        ),
+        kernel_version: uname_data.release,
         desk_env: get_desktop_environment(),
-        distro,
+        distro: format!("{} ({})", distro, uname_data.machine),
         uptime: get_uptime(
-            // We pass to get_uptime the current uptime in seconds
+            // We pass to get_uptime the amount obtained with libc::sysinfo
             sys_info.uptime,
         ),
         total_memory: pretty_bytes(sys_info.total_ram as f64),
