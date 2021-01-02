@@ -36,26 +36,6 @@ Even though Pulga makes use of [Unsafe Rust](https://doc.rust-lang.org/book/ch19
 
 At every commit, the GitHub Actions workflow runs Pulga under [Valgrind](https://valgrind.org/). If Valgrind encounters any error, the build is considered to be a failure.
 
-## Dependencies
-
-By default, Pulga does not have any dependencies not handled by [Cargo](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html).
-
-Pulga can obtain screen resolution using optional dependencies.
-
-When on X11, the feature `on_x11` uses Xlib and RandR extensions to obtain screen resolutions for all currently connected monitors.
-For this to work, two very common libraries must be installed.
-
-* On Debian-based distros:
-
-```shell
-sudo apt install libx11-dev libxrandr-dev
-```
-
-* On Arch Linux-based distros:
-```shell
-sudo pacman -S libx11 libxrandr
-```
-
 ## Building
 
 Cargo and a somewhat recent Rust toolchain must be installed to build. Get [rustup](https://rustup.rs/) if you want to install Rust.
@@ -64,9 +44,7 @@ git clone https://github.com/carmesim/pulga
 cd pulga
 cargo build --release     # Build Pulga with no extra dependencies
 # or
-cargo build --release --features on_x11   # Run Pulga with dependencies on X11 and RandR (see section above)
-# or (TODO)
-cargo build --release --features on_wayland
+cargo build --release --features use_xlib   # Run Pulga with dependencies on X11 and RandR (see the Dependencies section)
 ```
 
 ## To do
@@ -87,7 +65,7 @@ cargo build --release --features on_wayland
 - [ ] Add the ability to customize Pulga through a configuration file located in `~/.config/pulga.toml`.
 - [ ] Display storage usage
 - [x] Display screen resolution on X11
-- [ ] Display screen resolution on Wayland
+- [x] Display screen resolution on Wayland
 - [ ] Add logos for more Linux distributions
 - [ ] Add command-line arguments
 - [ ] Display font and themes
@@ -100,3 +78,22 @@ cargo build --release --features on_wayland
 ## Non-goals
 
 Pulga currently focuses solely on Linux distros. Supporting other Unix-like OSes is possible in the future. Supporting Windows is a non-goal.
+
+## Dependencies
+
+By default, Pulga does not have any dependencies not handled by [Cargo](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html). Screen resolution is obtained through by looking in `/sys/class/drm/*/modes`, which works in both X11 and Wayland. 
+
+If, for some reason, you'd like to use Xlib to fetch screen resolution instead, you may do that by activating the feature `use_xlib`. Do note that the default method is much faster. Xlib makes Pulga almost two times slower.
+
+For this to work, two very common libraries must be installed.
+
+* On Debian-based distros:
+
+```shell
+sudo apt install libx11-dev libxrandr-dev
+```
+
+* On Arch Linux-based distros:
+```shell
+sudo pacman -S libx11 libxrandr
+```
