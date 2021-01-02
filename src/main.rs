@@ -7,6 +7,8 @@ mod util;
 #[cfg(feature = "on_x11")]
 mod screenresx11;
 
+mod scwayland;
+
 use crate::
 {
     newfetch::UserData,
@@ -81,6 +83,8 @@ fn show(text: String, art: &str) {
 }
 
 fn main() {
+
+    // dbg!(scwayland::get_screen_resolution());
 
     // Seed libc::rand
     unsafe { libc::srand(libc::time(ptr::null_mut()) as u32); }
@@ -159,10 +163,7 @@ fn main() {
             is_random = true;
         }
     }
-
-
     
-
     let distro = if is_random {
         // This is seriously hacky
         unsafe { mem::transmute(get_rand(distros::DISTROS) as i8) }

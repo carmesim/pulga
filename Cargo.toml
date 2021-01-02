@@ -16,6 +16,7 @@ x11 = { version = "2.18.2", optional = true }
 
 [features]
 on_x11 = ["x11"]
+on_wayland = []
 
 [profile.release]
 lto = true

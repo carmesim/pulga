@@ -10,7 +10,10 @@ use crate::{
 };
 
 #[cfg(feature = "on_x11")]
-use crate::screenresx11::get_screen_resolution;
+use crate::screenresx11;
+
+#[cfg(feature = "on_wayland")]
+use crate::scwayland;
 
 use libc::{
     c_char, gethostname, getpwuid_r, getuid, passwd, sysconf, CPU_ISSET, CPU_SETSIZE,
@@ -111,8 +114,13 @@ pub fn get_user_data() -> UserData {
 
     let sys_info = SysInfo::gather();
 
-    #[cfg(show_screen_res)]
-    let resolution = unsafe { get_screen_resolution().join(" ") };
+    
+    #[cfg(feature = "on_x11")]
+    let resolution = unsafe { screenresx11::get_screen_resolution().join(" ") };    
+
+    #[cfg(feature = "on_wayland")]
+    let resolution = scwayland::get_screen_resolution().unwrap_or_else(|| vec!["Unknown".to_string()]).join(" ");
+    
 
     #[cfg(not(show_screen_res))]
     let resolution= "".to_string(); // Unused
