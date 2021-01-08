@@ -2,7 +2,7 @@
 mod _arts;
 
 mod distros;
-mod newfetch;
+mod pulga;
 mod sysinfo;
 mod uname;
 mod util;
@@ -12,7 +12,7 @@ mod screenresx11;
 
 mod screenres;
 
-use crate::{newfetch::UserData, util::get_rand};
+use crate::{pulga::UserData, util::get_rand};
 
 use indoc::indoc;
 use libc;
@@ -88,7 +88,22 @@ fn main() {
         libc::srand(libc::time(ptr::null_mut()) as u32);
     }
 
-    let data: UserData = newfetch::get_user_data();
+    let UserData {
+        username,
+        hostname,
+        cpu_info,
+        uptime,
+        hmd,
+        shell,
+        editor,
+        distro,
+        kernel_version,
+        desk_env,
+        monitor_res,
+        used_memory,
+        total_memory,
+        cwd: _, // Unused
+    } = pulga::get_user_data();
 
     #[rustfmt::skip]
     let text = format!(indoc! {
@@ -104,17 +119,17 @@ fn main() {
          {c}{}{w}: {r}{}{R}
          {c}{}{w}: {r}{}{R} / {r}{}{R}"
         },
-        data.username, data.hostname,
-        "cpu", data.cpu_info,
-        "uptime", data.uptime,
-        "home", data.hmd,
-        "shell", data.shell,
-        "editor", data.editor,
-        "distro", data.distro,
-        "kernel", data.kernel_version,
-        "desktop env.", data.desk_env,
-        "monitor", data.monitor_res,
-        "memory usage", data.used_memory, data.total_memory,
+        username, hostname,
+        "cpu", cpu_info,
+        "uptime", uptime,
+        "home", hmd,
+        "shell", shell,
+        "editor", editor,
+        "distro", distro,
+        "kernel", kernel_version,
+        "desktop env.", desk_env,
+        "monitor", monitor_res,
+        "memory usage", used_memory, total_memory,
         c = Fg(LightCyan),
         w = Fg(LightBlack),
         R = Fg(Reset),
