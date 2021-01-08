@@ -1,5 +1,3 @@
-#![feature(bool_to_option)]
-
 #[allow(dead_code)]
 mod _arts;
 #[rustfmt::skip]

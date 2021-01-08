@@ -35,5 +35,8 @@ pub fn get_screen_resolution() -> Option<Vec<String>> {
         }
     }
 
-    (!resolutions.is_empty()).then_some(resolutions)
+    match resolutions.is_empty() {
+        true => None,
+        false => Some(resolutions),
+    }
 }
