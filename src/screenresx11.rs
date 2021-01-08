@@ -1,16 +1,20 @@
-use x11::xlib::{XOpenDisplay, Display, XDefaultRootWindow};
-use x11::xrandr::{
-    XRRGetScreenResources, XRRCrtcInfo, XRRGetCrtcInfo, XRRFreeCrtcInfo, XRRFreeScreenResources, XRRScreenResources
+use x11::{
+    xlib::{Display, XDefaultRootWindow, XOpenDisplay},
+    xrandr::{
+        XRRCrtcInfo, XRRFreeCrtcInfo, XRRFreeScreenResources, XRRGetCrtcInfo,
+        XRRGetScreenResources, XRRScreenResources,
+    },
 };
+
 use std::{ptr, vec::Vec};
 
 pub unsafe fn get_screen_resolution() -> Vec<String> {
-
     let mut resolutions = vec![];
 
     let display: *mut Display = XOpenDisplay(ptr::null());
-    
-    let screens: *mut XRRScreenResources =  XRRGetScreenResources(display, XDefaultRootWindow(display));
+
+    let screens: *mut XRRScreenResources =
+        XRRGetScreenResources(display, XDefaultRootWindow(display));
 
     let screens_no = (*screens).ncrtc as isize;
 

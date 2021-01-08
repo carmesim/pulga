@@ -22,7 +22,6 @@ impl SysInfo {
 
         assert_eq!(ret_val, 0, "libc::sysinfo failed.");
 
-
         SysInfo {
             uptime:     sysinfo_s.uptime as usize,
             total_ram:  sysinfo_s.totalram as usize,

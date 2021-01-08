@@ -1,22 +1,21 @@
 // TODO: /cpu/procinfo quirks
 //     * Intel usually puts an @ with the frequency in `model name`
-//     * AMD usually puts something like "Eight-Core Processor" in `model name` (at least in the Ryzen series)
-//     * `model nome` is really vague in Raspberry Pis. Getting `Hardware` would be a better fit.
+//     * AMD usually puts something like "Eight-Core Processor" in `model name`
+//       (at least in the Ryzen series)
+//     * `model nome` is really vague in Raspberry Pis. Getting `Hardware` would
+//       be a better fit.
 
 use crate::{
+    screenres::get_screen_resolution,
     sysinfo::SysInfo,
     uname::UnameData,
     util::{char_ptr_to_string, os_str_to_string},
-    screenres::get_screen_resolution,
 };
 
 #[cfg(feature = "use_xlib")]
 use crate::screenresx11;
 
-use libc::{
-    c_char, gethostname, getpwuid_r, getuid, passwd, sysconf, CPU_ISSET, CPU_SETSIZE,
-    _SC_HOST_NAME_MAX,
-};
+use libc::{c_char, gethostname, getpwuid_r, getuid, passwd, sysconf};
 
 use smallvec::{smallvec, SmallVec};
 
@@ -50,8 +49,8 @@ fn get_logical_cpus() -> usize {
     // If sched_getaffinity returns 0 (succeeded)
     if code == 0 {
         let mut count = 0;
-        for i in 0..CPU_SETSIZE as usize {
-            if unsafe { CPU_ISSET(i, &set) } {
+        for i in 0..libc::CPU_SETSIZE as usize {
+            if unsafe { libc::CPU_ISSET(i, &set) } {
                 count += 1
             }
         }
@@ -73,7 +72,7 @@ pub fn get_cpu_max_freq() -> Option<String> {
 
     let max_freq_ghz = (max_freq_hz as f64) / 1000000.0;
 
-    Some (format!("{:.2} GHz", max_freq_ghz))
+    Some(format!("{:.2} GHz", max_freq_ghz))
 }
 
 /// pretty_bytes gets a value in bytes and returns a human-readable form of it
@@ -100,7 +99,7 @@ pub fn get_user_data() -> UserData {
     } else {
         let unknown = "Unknown".to_string();
         (unknown.clone(), unknown.clone(), unknown)
-    };    
+    };
 
     // Current working directory
     let cwd: String = os_str_to_string(env::current_dir().unwrap().as_ref());
@@ -112,12 +111,13 @@ pub fn get_user_data() -> UserData {
 
     let sys_info = SysInfo::gather();
 
-    
     #[cfg(feature = "use_xlib")]
-    let resolution = unsafe { screenresx11::get_screen_resolution().join(" ") };    
+    let resolution = unsafe { screenresx11::get_screen_resolution().join(" ") };
 
     #[cfg(not(feature = "use_xlib"))]
-    let resolution = get_screen_resolution().unwrap_or_else(|| vec!["Unknown".to_string()]).join(" ");
+    let resolution = get_screen_resolution()
+        .unwrap_or_else(|| vec!["Unknown".to_string()])
+        .join(" ");
 
     UserData {
         username,
@@ -146,7 +146,7 @@ pub fn get_user_data() -> UserData {
 }
 
 pub fn get_hostname() -> Option<String> {
-    let hostname_max = unsafe { sysconf(_SC_HOST_NAME_MAX) } as usize;
+    let hostname_max = unsafe { sysconf(libc::_SC_HOST_NAME_MAX) } as usize;
     let mut buffer = vec![0_u8; hostname_max + 1]; // +1 to account for the NUL character
     let ret = unsafe { gethostname(buffer.as_mut_ptr() as *mut c_char, buffer.len()) };
 
@@ -176,8 +176,8 @@ pub fn get_distro() -> Option<String> {
 }
 
 pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
-    // Warning: let rustc infer the type of `buf`, as the value of `buf.as_mut_ptr()`
-    // below may vary in type depending on the architecture
+    // Warning: let rustc infer the type of `buf`, as the value of
+    // `buf.as_mut_ptr()` below may vary in type depending on the architecture
     // e.g.: *mut i8 on x86-64
     //       *mut u8 on ARMv7
     let mut buf = [0; 2048];
@@ -266,41 +266,32 @@ pub fn get_uptime(uptime_in_centiseconds: usize) -> String {
 }
 
 pub fn get_default_editor() -> Option<String> {
-    let def_editor_path = std::env::var_os("EDITOR")?
-                                    .to_string_lossy()
-                                    .to_string();
-    
+    let def_editor_path = std::env::var_os("EDITOR")?.to_string_lossy().to_string();
+
     // Return the editor's executable name, without its path
-    Some (
-        def_editor_path.rsplit(|a| a == '/')
+    Some(
+        def_editor_path
+            .rsplit(|a| a == '/')
             .next()
             .unwrap()
-            .to_string()
+            .to_string(),
     )
 }
 
 pub fn get_desktop_environment() -> String {
     std::env::var_os("DESKTOP_SESSION")
-        .map(|env| env.to_string_lossy().to_string())
         .map(|env| {
-            let env = env.to_lowercase();
-
-            if env.contains("gnome") {
-                "Gnome"
-            } else if env.contains("lxde") {
-                "LXDE"
-            } else if env.contains("openbox") {
-                "OpenBox"
-            } else if env.contains("i3") {
-                "i3"
-            } else if env.contains("ubuntu") {
-                "Ubuntu"
-            } else if env.contains("plasma5") {
-                "KDE"
-            } else {
-                env.as_ref()
+            let env = env.to_string_lossy().to_string().to_lowercase();
+            match env {
+                _ if env.contains("gnome") => "Gnome",
+                _ if env.contains("lxde") => "LXDE",
+                _ if env.contains("openbox") => "OpenBox",
+                _ if env.contains("i3") => "i3",
+                _ if env.contains("ubuntu") => "Ubuntu",
+                _ if env.contains("plasma5") => "KDE",
+                _ => env.as_str(),
             }
             .to_string()
         })
-        .unwrap_or_else(|| String::from("Unknown"))
+        .unwrap_or_else(|| "Unknown".to_string())
 }

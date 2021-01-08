@@ -1,3 +1,5 @@
+#![feature(bool_to_option)]
+
 #[allow(dead_code)]
 mod _arts;
 
@@ -15,7 +17,6 @@ mod screenres;
 use crate::{pulga::UserData, util::get_rand};
 
 use indoc::indoc;
-use libc;
 use smallvec::SmallVec;
 use sugars::{boxed, hmap};
 use termion::{color::*, cursor::*};

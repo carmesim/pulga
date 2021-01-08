@@ -1,53 +1,39 @@
-use std::{
-    vec,
-    fs,
-    path::Path,
-};
+use std::{fs, path::PathBuf, vec};
 
 /// Scans through cat /sys/class/drm/*/modes looking for used resolutions.
 /// Should work on both X11 and Wayland.
 pub fn get_screen_resolution() -> Option<Vec<String>> {
-
     let mut resolutions = vec![];
 
-    let paths = fs::read_dir("/sys/class/drm/").ok()?;    
-    
-    for path in paths {
-        let path = path.ok()?;
-        let metadata = path.metadata().ok()?;
+    // Read all entries  "/sys/class/drm/"
+    for entry in fs::read_dir("/sys/class/drm/").ok()? {
+        let entry = entry.ok()?;
+
+        let metadata = entry.metadata().ok()?;
         if metadata.is_file() {
             continue;
         }
-        let mode_file = format!("/sys/class/drm/{}/modes", path.file_name().to_string_lossy());
-        let mode_file_path = Path::new(&mode_file);
-        if !mode_file_path.exists() {
-            continue;
-        }
-        // We have already determined the file exists, so we shouldn't have any 
-        // surprises when opening it.
-        let mode_file = fs::read_to_string(mode_file).ok()?;
-        if mode_file.is_empty() {
-            continue;
-        }
 
-        for resolution in mode_file.lines() {
-            let x_position = match resolution.find('x') {
-                Some(pos) => pos,
-                None => continue // This arm *should* be unreachable, I think
-            };
-            
-            // Given a string like "1366x768", we want to return "768p". 
+        // Path '/sys/class/drm/{entry}/modes'
+        let file_path = PathBuf::from("/sys/class/drm/")
+            .join(entry.file_name())
+            .join("/modes");
 
-            //                                                        + 1 to skip the 'x' itself
-            let (_, height) = resolution.split_at(x_position + 1);
-            
-            resolutions.push(format!("{}p", height));
+        let file_text = match fs::read_to_string(&file_path) {
+            Ok(file_text) if !file_text.is_empty() => file_text,
+            // Ignore errors and empty files
+            _ => continue,
+        };
+
+        for resolution in file_text.lines() {
+            // Given a string like "1366x768", we want to return "768p".
+            match resolution.split('x').nth(1) {
+                Some(resolution_height) => resolutions.push(format!("{}p", resolution_height)),
+                // TODO: Is this unreacheable?
+                None => continue,
+            }
         }
     }
 
-    if resolutions.is_empty() {
-        None
-    } else {
-        Some(resolutions)
-    }
+    (!resolutions.is_empty()).then_some(resolutions)
 }
