@@ -2,26 +2,23 @@
 
 #[allow(dead_code)]
 mod _arts;
-
+#[rustfmt::skip]
 mod distros;
 mod pulga;
+mod screenres;
+#[cfg(feature = "use_xlib")]
+mod screenresx11;
 mod sysinfo;
 mod uname;
 mod util;
 
-#[cfg(feature = "use_xlib")]
-mod screenresx11;
-
-mod screenres;
-
 use crate::{pulga::UserData, util::get_rand};
 
-use indoc::indoc;
 use smallvec::SmallVec;
 use sugars::{boxed, hmap};
 use termion::{color::*, cursor::*};
 
-use std::{collections::HashMap, env, mem, ptr};
+use std::{collections::HashMap, env, mem};
 
 fn show(text: String, art: &str) {
     let lines: SmallVec<[&str; 128]> = text.lines().map(|x| x.trim()).collect();
@@ -84,11 +81,6 @@ fn show(text: String, art: &str) {
 fn main() {
     // dbg!(scwayland::get_screen_resolution());
 
-    // Seed libc::rand
-    unsafe {
-        libc::srand(libc::time(ptr::null_mut()) as u32);
-    }
-
     let UserData {
         username,
         hostname,
@@ -107,19 +99,19 @@ fn main() {
     } = pulga::get_user_data();
 
     #[rustfmt::skip]
-    let text = format!(indoc! {
-        "{c}{}{R}@{c}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}/{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R}
-         {c}{}{w}: {r}{}{R} / {r}{}{R}"
-        },
+    let text = format!(
+        "{c}{}{R}@{c}{}{R}\n\
+        \n\
+         {c}{}{w}: {r}{}{R}\n\
+         {c}{}{w}: {r}{}{R}\n\
+         {c}{}{w}: {r}{}/{R}\n\
+         {c}{}{w}: {r}{}{R}\n\
+         {c}{}{w}: {r}{}{R}\n\
+         {c}{}{w}: {r}{}{R}\n\
+         {c}{}{w}: {r}{}{R}\n\
+         {c}{}{w}: {r}{}{R}\n\
+         {c}{}{w}: {r}{}{R}\n\
+         {c}{}{w}: {r}{}{R} / {r}{}{R}",
         username, hostname,
         "cpu", cpu_info,
         "uptime", uptime,
@@ -152,7 +144,7 @@ fn main() {
     } else {
         distros::Distro::Debian
     };
-    let art = distros::choose_art(distro);
+    let (_, art) = distros::choose_art(distro);
 
     show(text, art);
 }

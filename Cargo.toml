@@ -8,7 +8,6 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2"
-indoc = "1.0"
 termion = "1.5"
 sugars = "3.0"
 smallvec = "1.5"

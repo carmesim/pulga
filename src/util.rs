@@ -3,6 +3,7 @@ use libc::{self, c_char};
 use std::{
     ffi::{CStr, OsStr},
     os::unix::ffi::OsStrExt,
+    ptr,
 };
 
 pub(crate) unsafe fn char_ptr_to_string(ptr: *mut c_char) -> String {
@@ -19,5 +20,8 @@ pub(crate) fn os_str_to_string(os_str: &OsStr) -> String {
 /// Simple rand function, wraps over libc::rand
 /// It isn't super secure, but we don't really need security
 pub(crate) fn get_rand(max: i32) -> i32 {
-    unsafe { libc::rand() % max }
+    unsafe {
+        libc::srand(libc::time(ptr::null_mut()) as u32);
+        libc::rand() % max
+    }
 }
