@@ -9,7 +9,7 @@ pub enum Distro {
     Fedora,
 }
 
-pub fn choose_art(distro: Distro) -> (u8, &'static str) {
+pub fn choose_art(distro: Distro) -> (u16, &'static str) {
     match distro {
         Distro::Arch => ARCH_LOGO,
         Distro::Manjaro => MANJARO_LOGO,
@@ -18,7 +18,7 @@ pub fn choose_art(distro: Distro) -> (u8, &'static str) {
     }
 }
 
-const ARCH_LOGO: (u8, &str) = (
+const ARCH_LOGO: (u16, &str) = (
     20,
     "
 {c}                  -`
@@ -39,12 +39,13 @@ const ARCH_LOGO: (u8, &str) = (
   `/ossssso+/:-        -:/+osssso+-
  `+sso+:-`                 `.-/+oso:
 `++:.                           `-/+/
-.`                                 `/",
+.`                                 `/
+",
 );
 
-const MANJARO_LOGO: (u8, &str) = (
+const MANJARO_LOGO: (u16, &str) = (
     20,
-    "\n
+    "
 {g} ██████████████████  ████████
  ██████████████████  ████████
  ██████████████████  ████████
@@ -58,12 +59,13 @@ const MANJARO_LOGO: (u8, &str) = (
  ████████  ████████  ████████
  ████████  ████████  ████████
  ████████  ████████  ████████
- ████████  ████████  ████████\n",
+ ████████  ████████  ████████
+ ",
 );
 
-const DEBIAN_LOGO: (u8, &str) = (
-    20,
-    "\n
+const DEBIAN_LOGO: (u16, &str) = (
+    33,
+    "
 {r}        _,met$$$$$gg.
      ,g$$$$$$$$$$$$$$$P.
    ,g$$P\"\"       \"\"\"Y$$.\".
@@ -83,9 +85,9 @@ const DEBIAN_LOGO: (u8, &str) = (
              `\"\"\"\"\n",
 );
 
-const FEDORA_LOGO: (u8, &str) = (
+const FEDORA_LOGO: (u16, &str) = (
     20,
-    "\n
+    "
 {b}        /:-------------:\\
        :-------------------::
      :-----------/{w}shhOHbmp{b}---:\\

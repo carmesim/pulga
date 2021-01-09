@@ -11,72 +11,95 @@ mod uname;
 mod util;
 
 use crate::{pulga::UserData, util::get_rand};
+use std::io::{self, BufWriter, Write};
 
 use smallvec::SmallVec;
-use sugars::{boxed, hmap};
+use sugars::boxed;
 use termion::{color::*, cursor::*};
 
 use std::{collections::HashMap, env, mem};
 
-fn show(text: String, art: &str) {
+fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16) -> io::Result<()> {
     let lines: SmallVec<[&str; 128]> = text.lines().map(|x| x.trim()).collect();
 
-    // Code to show colored logo
+    // Logo colors table
     #[rustfmt::skip]
     let color_map = {
-        let mut m: HashMap<char, Box<dyn Color>> = hmap! {};
+        let mut m = HashMap::<char, Box<dyn Color>>::new();
         m.insert('k', boxed!(Black  )); // k => Black
-        m.insert('b', boxed!(Blue   )); // b => Blue
-        m.insert('c', boxed!(Cyan   )); // c => Cyan
-        m.insert('g', boxed!(Green  )); // g => Green
-        m.insert('m', boxed!(Magenta)); // m => Magenta
         m.insert('r', boxed!(Red    )); // r => Red
-        m.insert('w', boxed!(White  )); // w => White
+        m.insert('g', boxed!(Green  )); // g => Green
         m.insert('y', boxed!(Yellow )); // y => Yellow
+        m.insert('b', boxed!(Blue   )); // b => Blue
+        m.insert('m', boxed!(Magenta)); // m => Magenta
+        m.insert('c', boxed!(Cyan   )); // c => Cyan
+        m.insert('w', boxed!(White  )); // w => White
         m.insert('R', boxed!(Reset  )); // R => Reset all
         m
     };
 
     let logo = art.chars().collect::<SmallVec<[char; 8192]>>();
+    let mut output = BufWriter::new(io::stdout());
 
     let mut i = 0;
-    while i < logo.len() - 2 {
-        let slice = &logo[i..=i + 2];
 
-        match slice {
+    while i < logo.len() - 2 {
+        match &logo[i..=i + 2] {
             ['{', color_id, '}'] => {
-                let color: &dyn Color = match color_map.get(color_id) {
-                    None => panic!("Unexpected color_id '{}'", color_id),
+                let color: &dyn Color = match color_map.get(&color_id) {
                     Some(color) => color.as_ref(),
+                    None => panic!("Unexpected color_id '{}'", color_id),
                 };
 
-                print!("{}", Fg(color));
-                i += 3;
+                i += 2;
+                write!(output, "{}", Fg(color))?;
             },
-            [first, ..] => {
-                print!("{}", *first as char);
-                i += 1;
+            ['\n', ..] => {
+                write!(output, "\n   ")?;
             },
-            _ => unreachable!(),
+            other => {
+                write!(
+                    output,
+                    "{}",
+                    other.get(0).expect("Slice shouldn't be empty")
+                )?;
+            },
         }
+        i += 1;
     }
 
     // Show the remaining stuff
     for remaining in logo.iter().skip(i) {
-        print!("{}", remaining);
+        write!(output, "{}", remaining)?;
     }
-    println!();
+    write!(output, "\n")?;
+
+    let logo_lines = logo.iter().filter(|x| **x == '\n').count() as u16;
+    let info_lines = lines.len() as u16;
 
     // Code to insert information at the side of the logo
-    print!("{}", Up(14));
+    write!(
+        output,
+        "{}",
+        Up(info_lines + (logo_lines - info_lines) / 2 + 1)
+    )?;
 
-    for (_, line) in lines.iter().enumerate() {
-        print!("{} {}{}{}", Right(32), line, Left(1000), Down(1));
+    for line in lines {
+        write!(
+            output,
+            "{} {}{}{}",
+            Right(horizontal_offset),
+            line,
+            Left(u16::MAX), // Go to the beginning, for sure
+            Down(1)
+        )?;
     }
-    print!("{}", Down(18));
+    // Important lol
+    write!(output, "{}", Down(100))?;
+    Ok(())
 }
 
-fn main() {
+fn main() -> io::Result<()> {
     // dbg!(scwayland::get_screen_resolution());
 
     let UserData {
@@ -142,7 +165,7 @@ fn main() {
     } else {
         distros::Distro::Debian
     };
-    let (_, art) = distros::choose_art(distro);
 
-    show(text, art);
+    let (offset, art) = distros::choose_art(distro);
+    display_information_and_logo(text, art, offset)
 }
