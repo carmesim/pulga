@@ -17,7 +17,7 @@ pub fn get_screen_resolution() -> Option<Vec<String>> {
         // Path '/sys/class/drm/{entry}/modes'
         let file_path = PathBuf::from("/sys/class/drm/")
             .join(entry.file_name())
-            .join("/modes");
+            .join("modes");
 
         let file_text = match fs::read_to_string(&file_path) {
             Ok(file_text) if !file_text.is_empty() => file_text,
@@ -29,8 +29,8 @@ pub fn get_screen_resolution() -> Option<Vec<String>> {
             // Given a string like "1366x768", we want to return "768p".
             match resolution.split('x').nth(1) {
                 Some(resolution_height) => resolutions.push(format!("{}p", resolution_height)),
-                // TODO: Is this unreacheable?
-                None => continue,
+                // TODO: Is this really unreacheable?
+                None => unreachable!("There's some weird stuff inside of your files mate"),
             }
         }
     }
