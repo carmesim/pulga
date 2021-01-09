@@ -76,15 +76,12 @@ fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16)
 
     let logo_lines = logo.iter().filter(|x| **x == '\n').count() as u16;
     let info_lines = lines.len() as u16;
+    let up_how_many_times = info_lines + (logo_lines - info_lines) / 2 + 1;
 
     // Code to insert information at the side of the logo
-    write!(
-        output,
-        "{}",
-        Up(info_lines + (logo_lines - info_lines) / 2 + 1)
-    )?;
+    write!(output, "{}", Up(up_how_many_times))?;
 
-    for line in lines {
+    for line in lines.iter() {
         write!(
             output,
             "{} {}{}{}",
@@ -94,8 +91,7 @@ fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16)
             Down(1)
         )?;
     }
-    // Important lol
-    write!(output, "{}", Down(100))?;
+    write!(output, "{}", Down(up_how_many_times - lines.len() as u16))?;
     Ok(())
 }
 
