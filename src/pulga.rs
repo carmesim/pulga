@@ -115,9 +115,7 @@ pub fn get_user_data() -> UserData {
     let resolution = unsafe { screenresx11::get_screen_resolution().join(" ") };
 
     #[cfg(not(feature = "use_xlib"))]
-    let resolution = get_screen_resolution()
-        .unwrap_or_else(|| vec!["Unknown".to_string()])
-        .join(" ");
+    let resolution = get_screen_resolution().unwrap_or_else(|| "Unknown".to_string());
 
     UserData {
         username,

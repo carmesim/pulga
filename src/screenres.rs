@@ -2,11 +2,11 @@ use std::{fs, path::PathBuf, vec};
 
 /// Scans through cat /sys/class/drm/*/modes looking for used resolutions.
 /// Should work on both X11 and Wayland.
-pub fn get_screen_resolution() -> Option<Vec<String>> {
+pub fn get_screen_resolution() -> Option<String> {
     let mut resolutions = vec![];
 
     // Read all entries  "/sys/class/drm/"
-    for entry in fs::read_dir("/sys/class/drm/").ok()? {
+    'outer: for entry in fs::read_dir("/sys/class/drm/").ok()? {
         let entry = entry.ok()?;
 
         let metadata = entry.metadata().ok()?;
@@ -28,15 +28,34 @@ pub fn get_screen_resolution() -> Option<Vec<String>> {
         for resolution in file_text.lines() {
             // Given a string like "1366x768", we want to return "768p".
             match resolution.split('x').nth(1) {
-                Some(resolution_height) => resolutions.push(format!("{}p", resolution_height)),
+                Some(resolution_height) => match resolution_height.parse::<i32>() {
+                    Ok(number) => {
+                        resolutions.push(number);
+                        continue 'outer;
+                    },
+                    Err(_) => unreachable!("Bad number :( bad file :("),
+                },
                 // TODO: Is this really unreacheable?
                 None => unreachable!("There's some weird stuff inside of your files mate"),
             }
         }
     }
 
-    match resolutions.is_empty() {
-        true => None,
-        false => Some(resolutions),
-    }
+    // // Damn fold_first is nightly
+    // resolutions
+    //     .into_iter()
+    //     .fold_first(|a, b| i32::max(a, b))
+    //     .map(|x| format!("{}p", x))
+
+    resolutions
+        .into_iter()
+        .map(|x| Some(x))
+        .fold(None, |a, b| {
+            if a.is_none() || b.unwrap() > a.unwrap() {
+                b
+            } else {
+                a
+            }
+        })
+        .map(|x| format!("{}p", x))
 }
