@@ -14,6 +14,22 @@ pub fn get_screen_resolution() -> Option<String> {
             continue;
         }
 
+        // Path '/sys/class/drm/{entry}/enabled'
+        let enabled_path = PathBuf::from("/sys/class/drm/")
+            .join(entry.file_name())
+            .join("enabled");
+
+
+        // Check for the 'enabled' file
+        let _enabled = match fs::read_to_string(&enabled_path) {
+            Ok(file_text) 
+                // The `enabled` file contains either "enabled" or "disabled"
+                // If the monitor is disabled then we don't have to bother reading it
+                if file_text.chars().next() == Some('e') => {},
+            // Ignore errors and disabled monitors
+            _ => continue,
+        };
+
         // Path '/sys/class/drm/{entry}/modes'
         let file_path = PathBuf::from("/sys/class/drm/")
             .join(entry.file_name())
@@ -41,21 +57,17 @@ pub fn get_screen_resolution() -> Option<String> {
         }
     }
 
-    // // Damn fold_first is nightly
-    // resolutions
-    //     .into_iter()
-    //     .fold_first(|a, b| i32::max(a, b))
-    //     .map(|x| format!("{}p", x))
+    resolutions.sort_unstable();
 
-    resolutions
-        .into_iter()
-        .map(|x| Some(x))
-        .fold(None, |a, b| {
-            if a.is_none() || b.unwrap() > a.unwrap() {
-                b
-            } else {
-                a
-            }
-        })
-        .map(|x| format!("{}p", x))
+
+    if resolutions.is_empty() {
+        None
+    } else {
+        Some(
+            resolutions
+                .into_iter()
+                .rfold("".to_string(), |res, val| format!("{} {}p", res, val) )
+                .to_string()
+        )
+    }
 }
