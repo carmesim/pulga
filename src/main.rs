@@ -16,7 +16,6 @@ use std::io::{self, BufWriter, Write};
 use smallvec::SmallVec;
 use sugars::boxed;
 use termion::{color::*, cursor::*};
-use phf;
 
 use std::{collections::HashMap, env, mem};
 
