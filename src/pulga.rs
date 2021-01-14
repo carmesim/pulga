@@ -30,7 +30,8 @@ pub struct UserData {
     pub hmd:            String, // User's home directory
     pub shell:          String, // User's standard shell
     pub desk_env:       String, // User's desktop environment
-    pub distro:         String, // User's distro
+    // pub distro_id:      String, // User's distro ID name
+    pub distro:         String, // User's distro's pretty name
     pub uptime:         String, // Time elapsed since boot
     pub editor:         String, // User's default editor, as pointed by the EDITOR var env.
     pub kernel_version: String, // User's current kernel version

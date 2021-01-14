@@ -11,6 +11,7 @@ libc = "0.2"
 termion = "1.5"
 sugars = "3.0"
 smallvec = "1.5"
+phf = { version = "0.8", features = ["macros"] }
 x11 = { version = "2.18.2", optional = true }
 
 [features]
