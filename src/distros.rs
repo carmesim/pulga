@@ -4,19 +4,16 @@ use crate::{arts::*, get_rand};
 
 use std::fs;
 
-// Sync with enum below
-const DISTRO_QUANTITY: i32 = 5;
-
+// Unused for now
+/// Should include (preferably) all package managers used by distros.
 #[allow(dead_code)]
-#[repr(i32)]
-#[derive(Debug, Clone)]
-pub enum Distro {
-    Arch,
-    Manjaro,
-    Debian,
-    Fedora,
-    Unknown,
+pub enum PackageManager {
+    Pacman,
+    EOPKG,
+    DPKG,
+    RPM,
 }
+
 
 // Return the enum variant
 pub static DISTROS: phf::Map<&'static str, &'static str> = phf_map! {
@@ -29,7 +26,7 @@ pub static DISTROS: phf::Map<&'static str, &'static str> = phf_map! {
 pub fn choose_distro(random: bool) -> &'static str {
     if random {
         let keys: Vec<&str> = DISTROS.keys().map(|x: &&str| *x).collect();
-        let idx = get_rand(DISTRO_QUANTITY) as usize;
+        let idx = get_rand(keys.len() as i32) as usize;
         DISTROS
             .get(keys[idx])
             .map(Clone::clone)

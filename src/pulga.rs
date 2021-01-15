@@ -277,15 +277,16 @@ pub fn get_desktop_environment() -> String {
         .map(|env| {
             let env = get_base(env.to_str().unwrap()).to_lowercase();
             match env {
-                _ if env.contains("gnome") => "Gnome",
-                _ if env.contains("lxde") => "LXDE",
+                _ if env.contains("gnome")   => "Gnome",
+                _ if env.contains("lxde")    => "LXDE",
                 _ if env.contains("openbox") => "OpenBox",
-                _ if env.contains("i3") => "i3",
-                _ if env.contains("ubuntu") => "Ubuntu",
-                _ if env.contains("plasma") => "KDE",
+                _ if env.contains("i3")      => "i3",
+                _ if env.contains("ubuntu")  => "Ubuntu",
+                _ if env.contains("plasma")  => "KDE",
+                _ if env.contains("mate")    => "MATE",
                 _ => env.as_str(),
             }
-            .to_string()
+            .into()
         })
         .unwrap_or_else(|| "Unknown".to_string())
 }
