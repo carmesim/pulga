@@ -1,6 +1,4 @@
-#[allow(dead_code)]
-mod _arts;
-#[rustfmt::skip]
+mod arts;
 mod distros;
 mod pulga;
 mod screenres;
@@ -10,16 +8,16 @@ mod sysinfo;
 mod uname;
 mod util;
 
-use crate::{pulga::UserData, util::get_rand, distros::{DISTROS, get_id}};
+use crate::{pulga::UserData, util::get_rand};
 use std::io::{self, BufWriter, Write};
 
 use smallvec::SmallVec;
 use sugars::boxed;
 use termion::{color::*, cursor::*};
 
-use std::{collections::HashMap, env, mem};
+use std::{cmp, collections::HashMap, env};
 
-fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16) -> io::Result<()> {
+fn display_information_and_logo(text: String, art: &str) -> io::Result<()> {
     let lines: SmallVec<[&str; 128]> = text.lines().map(|x| x.trim()).collect();
 
     // Logo colors table
@@ -42,6 +40,8 @@ fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16)
     let mut output = BufWriter::new(io::stdout());
 
     let mut i = 0;
+    let mut horizontal_offset = 0;
+    let mut current_horizontal_offset = 0;
 
     while i < logo.len() - 2 {
         match &logo[i..=i + 2] {
@@ -55,9 +55,14 @@ fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16)
                 write!(output, "{}", Fg(color))?;
             },
             ['\n', ..] => {
+                horizontal_offset = cmp::max(horizontal_offset, current_horizontal_offset);
+
+                current_horizontal_offset = 0;
+                // 3 whitespaces of padding on the left
                 write!(output, "\n   ")?;
             },
             other => {
+                current_horizontal_offset += 1;
                 write!(
                     output,
                     "{}",
@@ -68,11 +73,13 @@ fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16)
         i += 1;
     }
 
-    // Show the remaining stuff
+    horizontal_offset = cmp::max(horizontal_offset, current_horizontal_offset);
+
+    // Show the remaining stuff, that is, slices with len <= 2
     for remaining in logo.iter().skip(i) {
         write!(output, "{}", remaining)?;
     }
-    write!(output, "\n")?;
+    writeln!(output)?;
 
     let logo_lines = logo.iter().filter(|x| **x == '\n').count() as u16;
     let info_lines = lines.len() as u16;
@@ -85,7 +92,8 @@ fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16)
         write!(
             output,
             "{} {}{}{}",
-            Right(horizontal_offset),
+            // 3 whitespaces of padding on the left and right
+            Right(horizontal_offset + 6),
             line,
             Left(u16::MAX), // Go to the beginning, for sure
             Down(1)
@@ -96,8 +104,6 @@ fn display_information_and_logo(text: String, art: &str, horizontal_offset: u16)
 }
 
 fn main() -> io::Result<()> {
-    // dbg!(scwayland::get_screen_resolution());
-
     let UserData {
         username,
         hostname,
@@ -146,22 +152,10 @@ fn main() -> io::Result<()> {
         r = Fg(LightRed),
     );
 
-    let mut is_random = false;
+    let random_distro = env::args().skip(1).any(|x| x == "--random" || x == "-r");
 
-    // Small arg parsing out of nowhere
-    for arg in env::args().skip(1) {
-        if arg == "--random" || arg == "-r" {
-            is_random = true;
-        }
-    }
+    let distro = distros::choose_distro(random_distro);
+    let art = distros::choose_art(distro);
 
-    let (offset, art) = if is_random {
-        let distro = unsafe { mem::transmute(get_rand(distros::DISTROS_NO) as i8) };
-        distros::choose_art(distro)
-    } else {
-        let id = get_id().unwrap_or_else(|| "linux".to_string());
-        *DISTROS.get(&id).unwrap()
-    };
-
-    display_information_and_logo(text, art, offset)
+    display_information_and_logo(text, art)
 }

@@ -1,218 +1,57 @@
-use phf::*;
+use phf::phf_map;
 
-pub static DISTROS: phf::Map<&'static str, (u16, &'static str)> = phf_map! {
-    "debian" => (
-      33,
-      "
-  {r}        _,met$$$$$gg.
-       ,g$$$$$$$$$$$$$$$P.
-     ,g$$P\"\"       \"\"\"Y$$.\".
-    ,$$P'              `$$$.
-  ',$$P       ,ggs.     `$$b:
-  `d$$'     ,$P\"'   .    $$$
-   $$P      d$'     ,    $$P
-   $$:      $$.   -    ,d$$'
-   $$;      Y$b._   _,d$P'
-   Y$$.    `.`\"Y$$$$P\"'
-   `$$b      \"-.__
-    `Y$$b
-     `Y$$.
-       `$$b.
-         `Y$$b.
-           `\"Y$b._
-               `\"\"\"\"\n",
-  ),
-    "arch" => (
-      20,
-      "
-  {c}                  -`
-                   .o+`
-                  `ooo/
-                 `+oooo:
-                `+oooooo:
-                -+oooooo+:
-              `/:-:++oooo+:
-             `/++++/+++++++:
-            `/++++++++++++++:
-           `/+++ooooooooooooo/`
-          ./ooosssso++osssssso+`
-         .oossssso-````/ossssss+`
-        -osssssso.      :ssssssso.
-       :osssssss/        osssso+++.
-      /ossssssss/        +ssssooo/-
-    `/ossssso+/:-        -:/+osssso+-
-   `+sso+:-`                 `.-/+oso:
-  `++:.                           `-/+/
-  .`                                 `/
-  ",
-  ),
-    "manjaro" => (
-      20,
-      "
-  {g} ██████████████████  ████████
-   ██████████████████  ████████
-   ██████████████████  ████████
-   ██████████████████  ████████
-   ████████            ████████
-   ████████  ████████  ████████
-   ████████  ████████  ████████
-   ████████  ████████  ████████
-   ████████  ████████  ████████
-   ████████  ████████  ████████
-   ████████  ████████  ████████
-   ████████  ████████  ████████
-   ████████  ████████  ████████
-   ████████  ████████  ████████
-   ",
-  ),
-    "fedora" => (
-      20,
-      "
-  {b}        /:-------------:\\
-         :-------------------::
-       :-----------/{w}shhOHbmp{b}---:\\
-     /-----------{w}omMMMNNNMMD{b}   ---:
-    :-----------{w}sMMMMNMNMP.{b}     ---:
-   :-----------{w}:MMMdP{b}-------    ---\\
-  ,------------{w}:MMMd{b}--------    ---:
-  :------------{w}:MMMd{b}-------    .---:
-  :----    {w}oNMMMMMMMMMNho{b}     .----:
-  :--     {w}.+shhhMMMmhhy++{b}   .------/
-  :-    -------{w}:MMMd{b}--------------:
-  :-   --------{w}/MMMd{b}-------------;
-  :-    ------{w}/hMMMy{b}------------:
-  :-- {w}:dMNdhhdNMMNo{b}------------;
-  :---{w}:sdNMMMMNds{b}:------------:
-  :------{w}:://:{b}-------------::
-   :---------------------://
-  ",
-  )
-};
+use crate::{arts::*, distros::Distro::*, get_rand};
 
-// Length of entries in the Distro enum.
-pub const DISTROS_NO: i32 = 4;
+use std::{fs, mem};
+
+// Sync with enum below
+const DISTRO_QUANTITY: i32 = 5;
 
 #[allow(dead_code)]
+#[repr(i32)]
+#[derive(Debug, Clone)]
 pub enum Distro {
     Arch,
     Manjaro,
     Debian,
     Fedora,
+    Unknown,
 }
 
-pub fn choose_art(distro: Distro) -> (u16, &'static str) {
-    match distro {
-        Distro::Arch => ARCH_LOGO,
-        Distro::Manjaro => MANJARO_LOGO,
-        Distro::Debian => DEBIAN_LOGO,
-        Distro::Fedora => FEDORA_LOGO,
+// Return the enum variant
+pub static DISTROS: phf::Map<&'static str, Distro> = phf_map! {
+    "arch"    => Arch   ,
+    "debian"  => Debian ,
+    "fedora"  => Fedora ,
+    "manjaro" => Manjaro,
+};
+
+pub fn choose_distro(random: bool) -> Distro {
+    if random {
+        unsafe { mem::transmute(get_rand(DISTRO_QUANTITY)) }
+    } else {
+        let id = get_id().unwrap();
+        DISTROS
+            .get(id.as_str())
+            .map(Clone::clone)
+            .unwrap_or(Distro::Unknown)
     }
 }
 
-// static KEYWORDS: phf::Map<&'static str, (u16, &str)> = phf::map! {
-//   "loop" => Keyword::Loop,
-//   "continue" => Keyword::Continue,
-//   "break" => Keyword::Break,
-//   "fn" => Keyword::Fn,
-//   "extern" => Keyword::Extern,
-// };
-
-const ARCH_LOGO: (u16, &str) = (
-    20,
-    "
-{c}                  -`
-                 .o+`
-                `ooo/
-               `+oooo:
-              `+oooooo:
-              -+oooooo+:
-            `/:-:++oooo+:
-           `/++++/+++++++:
-          `/++++++++++++++:
-         `/+++ooooooooooooo/`
-        ./ooosssso++osssssso+`
-       .oossssso-````/ossssss+`
-      -osssssso.      :ssssssso.
-     :osssssss/        osssso+++.
-    /ossssssss/        +ssssooo/-
-  `/ossssso+/:-        -:/+osssso+-
- `+sso+:-`                 `.-/+oso:
-`++:.                           `-/+/
-.`                                 `/
-",
-);
-
-const MANJARO_LOGO: (u16, &str) = (
-    20,
-    "
-{g} ██████████████████  ████████
- ██████████████████  ████████
- ██████████████████  ████████
- ██████████████████  ████████
- ████████            ████████
- ████████  ████████  ████████
- ████████  ████████  ████████
- ████████  ████████  ████████
- ████████  ████████  ████████
- ████████  ████████  ████████
- ████████  ████████  ████████
- ████████  ████████  ████████
- ████████  ████████  ████████
- ████████  ████████  ████████
- ",
-);
-
-const DEBIAN_LOGO: (u16, &str) = (
-    33,
-    "
-{r}        _,met$$$$$gg.
-     ,g$$$$$$$$$$$$$$$P.
-   ,g$$P\"\"       \"\"\"Y$$.\".
-  ,$$P'              `$$$.
-',$$P       ,ggs.     `$$b:
-`d$$'     ,$P\"'   .    $$$
- $$P      d$'     ,    $$P
- $$:      $$.   -    ,d$$'
- $$;      Y$b._   _,d$P'
- Y$$.    `.`\"Y$$$$P\"'
- `$$b      \"-.__
-  `Y$$b
-   `Y$$.
-     `$$b.
-       `Y$$b.
-         `\"Y$b._
-             `\"\"\"\"\n",
-);
-
-const FEDORA_LOGO: (u16, &str) = (
-    20,
-    "
-{b}        /:-------------:\\
-       :-------------------::
-     :-----------/{w}shhOHbmp{b}---:\\
-   /-----------{w}omMMMNNNMMD{b}   ---:
-  :-----------{w}sMMMMNMNMP.{b}     ---:
- :-----------{w}:MMMdP{b}-------    ---\\
-,------------{w}:MMMd{b}--------    ---:
-:------------{w}:MMMd{b}-------    .---:
-:----    {w}oNMMMMMMMMMNho{b}     .----:
-:--     {w}.+shhhMMMmhhy++{b}   .------/
-:-    -------{w}:MMMd{b}--------------:
-:-   --------{w}/MMMd{b}-------------;
-:-    ------{w}/hMMMy{b}------------:
-:-- {w}:dMNdhhdNMMNo{b}------------;
-:---{w}:sdNMMMMNds{b}:------------:
-:------{w}:://:{b}-------------::
- :---------------------://
-",
-);
-
+pub fn choose_art(distro: Distro) -> &'static str {
+    use Distro::*;
+    match distro {
+        Arch => ARCH_LOGO,
+        Manjaro => MANJARO_LOGO,
+        Debian => DEBIAN_LOGO,
+        Fedora => FEDORA_LOGO,
+        Unknown => "Default linux art here",
+    }
+}
 
 pub fn get_id() -> Option<String> {
-  use std::fs;
-  let text = fs::read_to_string("/etc/os-release").ok()?;
-  let id: usize = text.find("\nID=")?;
-  let id: String = text[id + 4..].chars().take_while(|x| *x != '\n').collect();
-  // let id: String = text[id + 4..].lines().next()?.to_string();
-  Some(id)
+    let text = fs::read_to_string("/etc/os-release").ok()?;
+    let id: usize = text.find("\nID=")?;
+    let id: String = text[id + 4..].chars().take_while(|x| *x != '\n').collect();
+    Some(id)
 }
