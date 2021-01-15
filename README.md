@@ -28,7 +28,7 @@ Overall:
   213.03 ± 76.66 times faster than './neofetch'
 ```
 
-This is, of course, not a 'fair' match since Pulga does not yet offer feature-parity with Neofetch.
+This is, of course, not a 'fair' match since Pulga does not offer feature-parity with Neofetch.
 
 ## Memory safety
 
@@ -57,19 +57,20 @@ cargo build --release --features use_xlib   # Run Pulga with dependencies on X11
 - [x] Display the distro on `systemd`-based systems
 - [x] Display the kernel version
 - [x] Display current memory usage
+- [x] Detect the appropriate ASCII art to show
 - [x] Display total memory available
 - [x] Display the current desktop environment
-  * Currently implemented but lacks some DEs still
+  * Please open an issue if your D.E. is missing in Pulga
 - [ ] Display the current window manager
 - [ ] Display the terminal being used
-- [ ] Add the ability to customize Pulga through a configuration file located in `~/.config/pulga.toml`.
+- [ ] Add the ability to customize Pulga through a `pulga.toml` file.
 - [ ] Display storage usage
 - [x] Display screen resolution on X11
 - [x] Display screen resolution on Wayland
-- [ ] Add logos for more Linux distributions
+- [x] Add logos for more Linux distributions
 - [ ] Add command-line arguments
+  * Only `-r/--random` implemented so far
 - [ ] Display font and themes
-- [ ] Display the distro on non-`systemd`-based systems
 - [x] Display the default editor
 - [x] Display CPU model
   * Some quirks about this still have to be ironed out
