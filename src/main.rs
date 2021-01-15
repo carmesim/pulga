@@ -10,7 +10,7 @@ mod sysinfo;
 mod uname;
 mod util;
 
-use crate::{pulga::UserData, util::get_rand};
+use crate::{pulga::UserData, util::get_rand, distros::{DISTROS, get_id}};
 use std::io::{self, BufWriter, Write};
 
 use smallvec::SmallVec;
@@ -155,13 +155,13 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let distro = if is_random {
-        // This is seriously hacky
-        unsafe { mem::transmute(get_rand(distros::DISTROS) as i8) }
+    let (offset, art) = if is_random {
+        let distro = unsafe { mem::transmute(get_rand(distros::DISTROS_NO) as i8) };
+        distros::choose_art(distro)
     } else {
-        distros::Distro::Debian
+        let id = get_id().unwrap_or_else(|| "linux".to_string());
+        *DISTROS.get(&id).unwrap()
     };
 
-    let (offset, art) = distros::choose_art(distro);
     display_information_and_logo(text, art, offset)
 }

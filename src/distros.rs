@@ -1,6 +1,6 @@
 use phf::*;
 
-static _DISTROS: phf::Map<&'static str, (u16, &'static str)> = phf_map! {
+pub static DISTROS: phf::Map<&'static str, (u16, &'static str)> = phf_map! {
     "debian" => (
       33,
       "
@@ -90,7 +90,7 @@ static _DISTROS: phf::Map<&'static str, (u16, &'static str)> = phf_map! {
 };
 
 // Length of entries in the Distro enum.
-pub const DISTROS: i32 = 4;
+pub const DISTROS_NO: i32 = 4;
 
 #[allow(dead_code)]
 pub enum Distro {
@@ -207,19 +207,12 @@ const FEDORA_LOGO: (u16, &str) = (
 ",
 );
 
-#[cfg(test)]
-mod tests {
-    fn get_id() -> Option<String> {
-        use std::fs;
-        let text = fs::read_to_string("/etc/os-release").ok()?;
-        let id: usize = text.find("\nID=")?;
-        let id: String = text[id + 4..].chars().take_while(|x| *x != '\n').collect();
-        // let id: String = text[id + 4..].lines().next()?.to_string();
-        Some(id)
-    }
 
-    #[test]
-    fn asd() {
-        println!("{}", get_id().unwrap());
-    }
+pub fn get_id() -> Option<String> {
+  use std::fs;
+  let text = fs::read_to_string("/etc/os-release").ok()?;
+  let id: usize = text.find("\nID=")?;
+  let id: String = text[id + 4..].chars().take_while(|x| *x != '\n').collect();
+  // let id: String = text[id + 4..].lines().next()?.to_string();
+  Some(id)
 }
