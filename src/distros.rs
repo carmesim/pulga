@@ -1,6 +1,6 @@
 use phf::phf_map;
 
-use crate::{arts::*, distros::Distro::*, get_rand};
+use crate::{arts::*, get_rand};
 
 use std::{fs, mem};
 
@@ -19,33 +19,28 @@ pub enum Distro {
 }
 
 // Return the enum variant
-pub static DISTROS: phf::Map<&'static str, Distro> = phf_map! {
-    "arch"    => Arch   ,
-    "debian"  => Debian ,
-    "fedora"  => Fedora ,
-    "manjaro" => Manjaro,
+pub static DISTROS: phf::Map<&'static str, &'static str> = phf_map! {
+    "arch"    => ARCH_LOGO   ,
+    "debian"  => DEBIAN_LOGO ,
+    "fedora"  => FEDORA_LOGO ,
+    "manjaro" => MANJARO_LOGO,
 };
 
-pub fn choose_distro(random: bool) -> Distro {
+pub fn choose_distro(random: bool) -> &'static str {
     if random {
-        unsafe { mem::transmute(get_rand(DISTRO_QUANTITY)) }
+        let keys: Vec<&str> = DISTROS.keys().map(|x: &&str| *x).collect();
+        let idx = get_rand(DISTRO_QUANTITY) as usize;
+        DISTROS
+            .get(keys[idx])
+            .map(Clone::clone)
+            .unwrap_or("linux")
+        
     } else {
         let id = get_id().unwrap();
         DISTROS
             .get(id.as_str())
             .map(Clone::clone)
-            .unwrap_or(Distro::Unknown)
-    }
-}
-
-pub fn choose_art(distro: Distro) -> &'static str {
-    use Distro::*;
-    match distro {
-        Arch => ARCH_LOGO,
-        Manjaro => MANJARO_LOGO,
-        Debian => DEBIAN_LOGO,
-        Fedora => FEDORA_LOGO,
-        Unknown => "Default linux art here",
+            .unwrap_or("linux")
     }
 }
 

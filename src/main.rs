@@ -155,7 +155,6 @@ fn main() -> io::Result<()> {
     let random_distro = env::args().skip(1).any(|x| x == "--random" || x == "-r");
 
     let distro = distros::choose_distro(random_distro);
-    let art = distros::choose_art(distro);
 
-    display_information_and_logo(text, art)
+    display_information_and_logo(text, distro)
 }
