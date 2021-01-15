@@ -25,3 +25,12 @@ pub(crate) fn get_rand(max: i32) -> i32 {
         libc::rand() % max
     }
 }
+
+// Extracts the last element of a path.
+// Example: "/foo/bar/" -> "bar"
+pub(crate) fn get_base(path: &str) -> String {
+    path.rsplit(|a| a == '/')
+            .next()
+            .unwrap()
+            .to_string()
+}

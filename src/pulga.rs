@@ -9,7 +9,7 @@ use crate::{
     screenres::get_screen_resolution,
     sysinfo::SysInfo,
     uname::UnameData,
-    util::{char_ptr_to_string, os_str_to_string},
+    util::{char_ptr_to_string, os_str_to_string, get_base},
 };
 
 #[cfg(feature = "use_xlib")]
@@ -196,12 +196,10 @@ pub fn get_username_home_dir_and_shell() -> Option<(String, String, String)> {
     if getpwuid_r_code == 0 && !result.is_null() {
         let username = unsafe { char_ptr_to_string(passwd.pw_name) };
         let home_dir = unsafe { char_ptr_to_string(passwd.pw_dir) };
+        
+        let shell = unsafe { char_ptr_to_string(passwd.pw_shell) };
         // From "/usr/bin/shell" to just "shell"
-        let shell = unsafe { char_ptr_to_string(passwd.pw_shell) }
-            .rsplit(|a| a == '/')
-            .next()
-            .unwrap()
-            .to_string();
+        let shell = get_base(&shell);
 
         Some((username, home_dir, shell))
     } else {
@@ -265,29 +263,26 @@ pub fn get_uptime(uptime_in_centiseconds: usize) -> String {
 }
 
 pub fn get_default_editor() -> Option<String> {
-    let def_editor_path = std::env::var_os("EDITOR")?.to_string_lossy().to_string();
+    let def_editor_path = std::env::var_os("EDITOR")?;
+    let def_editor_path = def_editor_path.to_string_lossy();
 
     // Return the editor's executable name, without its path
     Some(
-        def_editor_path
-            .rsplit(|a| a == '/')
-            .next()
-            .unwrap()
-            .to_string(),
+        get_base(&def_editor_path)
     )
 }
 
 pub fn get_desktop_environment() -> String {
     std::env::var_os("DESKTOP_SESSION")
         .map(|env| {
-            let env = env.to_string_lossy().to_string().to_lowercase();
+            let env = get_base(env.to_str().unwrap()).to_lowercase();
             match env {
                 _ if env.contains("gnome") => "Gnome",
                 _ if env.contains("lxde") => "LXDE",
                 _ if env.contains("openbox") => "OpenBox",
                 _ if env.contains("i3") => "i3",
                 _ if env.contains("ubuntu") => "Ubuntu",
-                _ if env.contains("plasma5") => "KDE",
+                _ if env.contains("plasma") => "KDE",
                 _ => env.as_str(),
             }
             .to_string()

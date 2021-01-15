@@ -2,7 +2,7 @@ use phf::phf_map;
 
 use crate::{arts::*, get_rand};
 
-use std::{fs, mem};
+use std::fs;
 
 // Sync with enum below
 const DISTRO_QUANTITY: i32 = 5;

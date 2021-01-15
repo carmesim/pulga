@@ -17,11 +17,11 @@ impl UnameData {
         // uname returns a negative number upon failure
         assert!(ret_val >= 0, "libc::uname failed.");
 
-        let sysname_cstr = unsafe { CStr::from_ptr(uts_struct.sysname.as_ptr()) };
+        let sysname_cstr  = unsafe { CStr::from_ptr(uts_struct.sysname.as_ptr()) };
         let nodename_cstr = unsafe { CStr::from_ptr(uts_struct.nodename.as_ptr()) };
-        let release_cstr = unsafe { CStr::from_ptr(uts_struct.release.as_ptr()) };
-        let version_cstr = unsafe { CStr::from_ptr(uts_struct.version.as_ptr()) };
-        let machine_cstr = unsafe { CStr::from_ptr(uts_struct.machine.as_ptr()) };
+        let release_cstr  = unsafe { CStr::from_ptr(uts_struct.release.as_ptr()) };
+        let version_cstr  = unsafe { CStr::from_ptr(uts_struct.version.as_ptr()) };
+        let machine_cstr  = unsafe { CStr::from_ptr(uts_struct.machine.as_ptr()) };
 
         UnameData {
             system_name: sysname_cstr.to_string_lossy().into_owned(),
