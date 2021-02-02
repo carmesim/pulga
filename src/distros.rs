@@ -58,7 +58,7 @@ pub static DISTROS: phf::Map<&'static str, &'static str> = phf_map! {
     "clearlinux"  => CLEARLINUX_LOGO  ,
     "clover"      => CLOVER_LOGO      ,
     "condres"     => CONDRES_LOGO     ,
-    "containerlinuxbycoreos_or_containerlinux" => CONTAINERLINUXBYCOREOS_OR_CONTAINERLINUX_LOGO, // lmao
+    "openwrt"     => OPENWRT          ,
 };
 
 pub fn choose_distro(random: bool) -> &'static str {
